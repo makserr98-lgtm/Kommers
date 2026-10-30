@@ -255,7 +255,7 @@ var I={
 /* ---------- дерево вопросов и задач (редактируется в приложении) ---------- */
 var CAN=['yes','partial'], WORKS=['repair','install','cable','shield'];
 var DEF_SHOPS=['ОСТ — спецтехника','ЭМР-1 — электромонтаж','ЭМР-2 — электромонтаж','Щит — двигатели и щиты','Каб — кабель и щиты собств. пр-ва','Тр — приём груза и транспорт'];
-var TREE_VER=2;
+var TREE_VER=3;
 function O(v,l,s){var o={v:v,l:l};if(s)o.s=s;return o}
 var DEF_TREE={questions:[
  {id:'goz',st:0,text:'Заказ по ГОЗ?',hint:'По ГОЗ все закупки с приёмкой ВП, а на письмах заказчика обязательны 2 подписи.',opts:[O('yes','Да, ГОЗ'),O('no','Нет')]},
@@ -265,11 +265,12 @@ var DEF_TREE={questions:[
  {id:'weight',st:0,when:[['dismount',['yes']]],text:'Есть узлы тяжелее 15 кг?',hint:'Оборудование тяжелее 15 кг мы не поднимаем.',opts:[O('yes','Да'),O('no','Нет'),O('unknown','Неизвестно')]},
  {id:'cond',st:0,kind:'multi',text:'Есть особые условия заказчика?',opts:[O('cable_date','Требование по году выпуска кабеля','Например, ГОЗ 2020: кабель 2019 года со склада нельзя'),O('other','Другие особые условия'),O('none','Нет')]},
  {id:'gost',st:0,kind:'gost',text:'Проверим формулировку заявки',hint:'Вставьте текст заявки. Приложение подсветит ненормативные слова и предложит замену. Это подсказка, а не официальный нормоконтроль.',opts:[O('ok','Формулировка корректна'),O('rewrite','Предложить заказчику переформулировку','Письмо с замечаниями попадёт в комментарий задачи'),O('internal','Переформулирую сам для служб')]},
- {id:'buy',st:0,text:'Нужна закупка оборудования, кабеля или материалов?',opts:[O('yes','Да'),O('no','Нет, всё есть'),O('unknown','Пока неясно')]},
+ {id:'buy',st:0,text:'Закупка оборудования, кабеля или материалов нужна?',hint:'Если закупка точно нужна, запрос в ОВК уйдёт сразу вместе с рассылкой службам. Если неясно, вопрос вернётся после заключений.',opts:[O('yes','Да, сразу понятно','Запрос в ОВК вместе со службами'),O('unknown','Станет ясно после заключений служб'),O('no','Нет, закупка не нужна')]},
 
  {id:'ogt_res',st:1,gate:true,kind:'multi',text:'Что ответил ОГТ?',opts:[O('ok','Технология есть, замечаний нет'),O('no_tech','Нет технологии'),O('no_docs','Нет ремонтной документации'),O('other','Другие замечания')]},
  {id:'ogk_res',st:1,gate:true,kind:'multi',when:[['type',WORKS]],text:'Что ответил ОГК?',opts:[O('ok','Замечаний нет'),O('no_draw','Нет чертежей помещений, неясно куда ставить'),O('no_conn','Неясно подключение, крепёж, наконечники'),O('no_route','Неясна трасса кабеля'),O('permit','Нужна карта разрешения')]},
  {id:'ost_res',st:1,gate:true,when:[['type',['spec']]],text:'Что ответил ОСТ?',opts:[O('ok','Замечаний нет'),O('no_tu','Нет ТУ на специзделие'),O('other','Другие замечания')]},
+ {id:'buy2',st:1,gate:true,when:[['buy',['unknown']]],text:'По заключениям служб нужна закупка?',hint:'Например, ОГТ или ОСТ сформировали закупочную ведомость.',opts:[O('yes','Да, нужна','Появится запрос в ОВК'),O('no','Нет')]},
  {id:'shops',st:1,gate:true,kind:'shops',text:'По каким цехам ОПП распределил работы?',hint:'Список цехов меняется в настройках.'},
  {id:'feasible',st:1,gate:true,text:'Итог по заключениям: работы выполнимы?',opts:[O('yes','Да'),O('partial','Частично или с условиями'),O('no','Нет, готовим отказ')]},
 
@@ -291,16 +292,17 @@ var DEF_TREE={questions:[
  {id:'tz_ogk',st:1,when:[['type',WORKS]],title:'Заключение ОГК',hint:'Электросхемы, чертежи помещений, места установки, крепёж, трассы кабеля, подключение и наконечники, карты разрешений, ТУ на оборудование. При крупном проекте база данных: оборудование, индексы, прокладка, подключение.'},
  {id:'tz_ost',st:1,when:[['type',['spec']]],title:'Заключение ОСТ по спецтехнике',hint:'ОСТ закрывает функции ОГК, ОГТ и ОПП для спецтехники. Проверить наличие ТУ на специзделие.'},
  {id:'tz_opp',st:1,title:'Ведомость распределения работ (ОПП)',hint:'ОПП выделяет работы и распределяет их по цехам-исполнителям.'},
- {id:'tz_ovk',st:1,when:[['buy',['yes','unknown']]],title:'Запрос в ОВК',hint:'Возможность закупки оборудования и кабеля, сроки поставки, наличие на складах и в других заказах.'},
+ {id:'tz_ovk',st:1,when:[['buy',['yes']]],title:'Запрос в ОВК',hint:'Возможность закупки оборудования и кабеля, сроки поставки, наличие на складах и в других заказах.'},
+ {id:'ovk_late',st:1,when:[['buy2',['yes']]],title:'Запрос в ОВК по итогам заключений',hint:'Возможность закупки, сроки поставки, наличие на складах и в других заказах.'},
  {id:'fix_ogt',st:1,any:[['ogt_res',['no_tech','no_docs']]],title:'Согласовать с заказчиком: нет технологии или документации',hint:'Предложить разработку технологии ОГТ или запросить ремонтную документацию.'},
  {id:'fix_ogk',st:1,any:[['ogk_res',['no_draw','no_conn','no_route']]],title:'Запросить у заказчика данные для ОГК',hint:'Чертежи помещений, места установки, трассы кабеля, схемы подключения, требования к крепежу и наконечникам.'},
  {id:'permit',st:1,when:[['ogk_res',['permit']]],title:'Оформить карту разрешения (ОГК)',hint:'Отступление от документа.'},
  {id:'fix_ost',st:1,when:[['ost_res',['no_tu']]],title:'Запросить ТУ на специзделие',hint:''},
 
  {id:'lab',st:2,perShop:true,when:[['feasible',CAN]],title:'Трудоёмкость и заявка на материалы',hint:'Цех присылает трудоёмкость, ОЗП и заявку на материалы: от ветоши и наконечников до спецмасла для проверки давления.'},
- {id:'buy_ved',st:2,when:[['feasible',CAN],['buy',['yes','unknown']]],title:'Закупочная ведомость (ОСТ или ОГТ)',hint:''},
- {id:'ovk_req',st:2,when:[['feasible',CAN],['buy',['yes','unknown']]],title:'Коммерческие запросы ОВК по закупочной ведомости',hint:''},
- {id:'vp_buy',st:2,when:[['feasible',CAN],['goz',['yes']],['buy',['yes','unknown']]],title:'Закупка с приёмкой ВП',hint:'По ГОЗ всё с приёмкой ВП. Указать в запросах ОВК.'},
+ {id:'buy_ved',st:2,when:[['feasible',CAN]],any:[['buy',['yes']],['buy2',['yes']]],title:'Закупочная ведомость (ОСТ или ОГТ)',hint:''},
+ {id:'ovk_req',st:2,when:[['feasible',CAN]],any:[['buy',['yes']],['buy2',['yes']]],title:'Коммерческие запросы ОВК по закупочной ведомости',hint:''},
+ {id:'vp_buy',st:2,when:[['feasible',CAN],['goz',['yes']]],any:[['buy',['yes']],['buy2',['yes']]],title:'Закупка с приёмкой ВП',hint:'По ГОЗ всё с приёмкой ВП. Указать в запросах ОВК.'},
  {id:'cable_chk',st:2,when:[['feasible',CAN],['cond',['cable_date']]],title:'Проверить год выпуска кабеля на складе',hint:'Если на складе кабель старше требуемого, включить закупку нового.'},
  {id:'dism_plan',st:2,when:[['feasible',CAN],['dismount',['yes']]],title:'Учесть демонтаж и доставку в трудоёмкости',hint:'Демонтаж, упаковка, транспорт, приём и входной контроль (Цех Тр).'},
  {id:'terms',st:2,when:[['terms',['no']]],title:'Согласовать срок с заказчиком',hint:'Предложить реальный срок по расчёту цехов и поставок.'},
@@ -454,7 +456,21 @@ function seed(){
 var S=load()||seed();
 if(!S.settings)S.settings={shops:[]};
 if(!S.tree)S.tree=clone(DEF_TREE);
-if((S.treeVer||1)<TREE_VER){var fresh=seed();S.tree=fresh.tree;S.settings.shops=fresh.settings.shops;S.kps=S.kps.filter(function(k){return !k.example}).concat(fresh.kps);S.treeVer=TREE_VER;save()}
+if((S.treeVer||1)<2){var fresh=seed();S.tree=fresh.tree;S.settings.shops=fresh.settings.shops;S.kps=S.kps.filter(function(k){return !k.example}).concat(fresh.kps);S.treeVer=TREE_VER;save()}
+/* точечное обновление стандартных карточек без потери своих правок дерева */
+function patchTree(kind,ids,after){
+  ids.forEach(function(id){
+    var def=DEF_TREE[kind].filter(function(x){return x.id===id})[0], arr=S.tree[kind];
+    var i=arr.findIndex(function(x){return x.id===id});
+    if(i>=0)arr[i]=clone(def);
+    else{var j=arr.findIndex(function(x){return x.id===after[id]});arr.splice(j>=0?j+1:arr.length,0,clone(def))}
+  });
+}
+if((S.treeVer||1)<3){
+  patchTree('questions',['buy','buy2'],{buy2:'ost_res'});
+  patchTree('tasks',['tz_ovk','ovk_late','buy_ved','ovk_req','vp_buy'],{ovk_late:'tz_ovk'});
+  S.treeVer=3;save();
+}
 var ui={view:'home',kpId:null,tab:'tasks',filter:'active',sheet:null,qdraft:null,toast:null,pulse:null,confirm:null};
 if(window.claude&&window.claude.hot&&window.claude.hot.data&&window.claude.hot.data.ui)ui=Object.assign(ui,window.claude.hot.data.ui);
 try{window.claude&&window.claude.hot&&window.claude.hot.snapshot&&window.claude.hot.snapshot(function(){return {ui:ui}})}catch(e){}
