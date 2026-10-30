@@ -259,6 +259,55 @@ select{width:100%;min-width:0;border:1px solid var(--line);background:var(--surf
 .lg{width:14px;height:10px;border-radius:3px;border:1.5px solid var(--line);display:inline-block}
 .lg.s-done{background:var(--ok-soft);border-color:var(--ok)}.lg.s-now{border-color:var(--accent);border-width:2.5px}.lg.s-open{border-color:var(--accent)}
 .lg.s-debt{background:var(--debt-soft);border-color:var(--debt)}.lg.s-wait{border-style:dashed}.lg.s-off{border-style:dashed;opacity:.4}
+.task.st-done,.task.st-skip{opacity:.72}
+.task.st-done .box{background:var(--ok);border-color:var(--ok);color:#fff}
+.task.st-done b,.task.st-skip b{text-decoration:line-through;text-decoration-color:var(--muted)}
+.task.st-skip .box{border-style:dashed;color:var(--muted);font-weight:700}
+.task.st-debt{border-color:color-mix(in srgb,var(--debt) 45%,transparent);background:var(--debt-soft)}
+.task.st-debt .box{border-color:var(--debt);color:var(--debt)}
+.task.st-avail{border-color:var(--accent);border-width:1.5px}
+.task.st-blocked .tt small:first-of-type{color:var(--muted)}
+.task.st-und{border-style:dashed;border-color:var(--warn)}
+.task.st-und .tt small:first-of-type{color:var(--warn)}
+.task .chip{align-self:center;flex:none}
+.qrow{display:flex;gap:10px;align-items:flex-start;text-align:left;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 12px}
+.qrow .qi{flex:none;width:22px;height:22px;border-radius:50%;background:var(--warn-soft);color:var(--warn);font-weight:800;display:grid;place-items:center;font-size:13px}
+.qrow.q-ready{border-color:var(--warn)}
+.qrow.q-answered .qi{background:var(--ok-soft);color:var(--ok)}
+.qrow .tt{flex:1;min-width:0;display:grid;gap:2px}
+.qrow .qt{font-weight:600;font-size:14.5px;line-height:1.3}
+.qrow small{font-size:12.5px;color:var(--muted)}
+.qrow .ans-v{color:var(--ink);font-weight:600}
+small.imp{display:block;font-size:12px;color:var(--warn);font-weight:500;margin-top:2px}
+.pre{display:grid;gap:6px}
+.pre-i{display:flex;align-items:center;gap:8px;text-align:left;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:8px 10px;font-size:13.5px;font-weight:500}
+.pre-i i{width:10px;height:10px;border-radius:50%;flex:none;border:2px solid var(--line)}
+.pre-i em{margin-left:auto;font-style:normal;font-size:11.5px;color:var(--muted);flex:none}
+.pre-i.st-done i,.pre-i.st-skip i{background:var(--ok);border-color:var(--ok)}
+.pre-i.st-debt i{background:var(--debt);border-color:var(--debt)}
+.pre-i.st-avail i{border-color:var(--accent)}
+.pre-i.st-und i{border-color:var(--warn);border-style:dashed}
+.tail-row{display:flex;gap:8px;align-items:center;justify-content:space-between;background:var(--surface);border-radius:10px;padding:8px 10px;font-size:13.5px;flex-wrap:wrap}
+.tail-row > span:first-child{min-width:0;flex:1 1 140px}
+.seg.mini{padding:2px;border-radius:9px;flex:none}
+.seg.mini button{padding:5px 9px;font-size:12px}
+.aft-st{font-size:11px;color:var(--accent);margin-top:4px}
+.groot{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:700;font-size:12.5px;justify-content:center}
+.gt{padding-right:22px}
+.gt .qmark{position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:50%;background:var(--warn);color:#fff;font-size:11px;display:grid;place-items:center;border:2px solid var(--surface)}
+.ge.e-plain{stroke:var(--muted);opacity:.6;stroke-dasharray:none}
+.ge.e-faint{stroke:var(--muted);opacity:.18;stroke-dasharray:4 5}
+.ge.e-wait{stroke:var(--muted);opacity:.55;stroke-dasharray:5 5}
+.ge.e-q{stroke:var(--warn);stroke-width:2;opacity:.95;stroke-dasharray:6 5}
+.ge.e-debt{stroke:var(--debt);stroke-width:2.2;opacity:1;stroke-dasharray:7 4}
+.ge.e-on{stroke:var(--accent);stroke-width:2.4;opacity:1}
+.ge.e-skip{stroke-dasharray:2 4}
+.gn.s-avail{border-color:var(--accent);border-width:2.5px;box-shadow:0 0 0 4px var(--accent-soft)}
+.gn.s-blocked{color:var(--ink)}
+.gn.s-und{border-style:dashed;border-color:var(--warn);color:var(--muted)}
+.gn.s-skip{border-style:dashed;color:var(--muted);text-decoration:line-through}
+.gn.s-skip i.sq{border-style:dashed}
+.lg.s-avail{border-color:var(--accent);border-width:2.5px}.lg.s-blocked{border-color:var(--line)}.lg.s-und{border-style:dashed;border-color:var(--warn)}.lg.s-skip{border-style:dashed}
 </style>
 
 <div id="app"></div>
@@ -288,10 +337,11 @@ var I={
   chat:'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 5h16v11H9l-5 4z"/></svg>'
 };
 
-/* ---------- дерево вопросов и задач (редактируется в приложении) ---------- */
-var CAN=['yes','partial'], WORKS=['repair','install','cable','shield'];
+
+/* ---------- дерево: действия со связями «что нужно до» и вопросы-переключатели ---------- */
+var CAN=['yes','partial'], WORKS=['repair','install','cable','shield'], GO=['contract','guarantee'];
 var DEF_SHOPS=['ОСТ — спецтехника','ЭМР-1 — электромонтаж','ЭМР-2 — электромонтаж','Щит — двигатели и щиты','Каб — кабель и щиты собств. пр-ва','Тр — приём груза и транспорт'];
-var TREE_VER=3;
+var TREE_VER=4;
 function O(v,l,s){var o={v:v,l:l};if(s)o.s=s;return o}
 var DEF_TREE={questions:[
  {id:'goz',st:0,text:'Заказ по ГОЗ?',hint:'По ГОЗ все закупки с приёмкой ВП, а на письмах заказчика обязательны 2 подписи.',opts:[O('yes','Да, ГОЗ'),O('no','Нет')]},
@@ -301,65 +351,63 @@ var DEF_TREE={questions:[
  {id:'weight',st:0,when:[['dismount',['yes']]],text:'Есть узлы тяжелее 15 кг?',hint:'Оборудование тяжелее 15 кг мы не поднимаем.',opts:[O('yes','Да'),O('no','Нет'),O('unknown','Неизвестно')]},
  {id:'cond',st:0,kind:'multi',text:'Есть особые условия заказчика?',opts:[O('cable_date','Требование по году выпуска кабеля','Например, ГОЗ 2020: кабель 2019 года со склада нельзя'),O('other','Другие особые условия'),O('none','Нет')]},
  {id:'gost',st:0,kind:'gost',text:'Проверим формулировку заявки',hint:'Вставьте текст заявки. Приложение подсветит ненормативные слова и предложит замену. Это подсказка, а не официальный нормоконтроль.',opts:[O('ok','Формулировка корректна'),O('rewrite','Предложить заказчику переформулировку','Письмо с замечаниями попадёт в комментарий задачи'),O('internal','Переформулирую сам для служб')]},
- {id:'buy',st:0,text:'Закупка оборудования, кабеля или материалов нужна?',hint:'Если закупка точно нужна, запрос в ОВК уйдёт сразу вместе с рассылкой службам. Если неясно, вопрос вернётся после заключений.',opts:[O('yes','Да, сразу понятно','Запрос в ОВК вместе со службами'),O('unknown','Станет ясно после заключений служб'),O('no','Нет, закупка не нужна')]},
-
- {id:'ogt_res',st:1,gate:true,kind:'multi',text:'Что ответил ОГТ?',opts:[O('ok','Технология есть, замечаний нет'),O('no_tech','Нет технологии'),O('no_docs','Нет ремонтной документации'),O('other','Другие замечания')]},
- {id:'ogk_res',st:1,gate:true,kind:'multi',when:[['type',WORKS]],text:'Что ответил ОГК?',opts:[O('ok','Замечаний нет'),O('no_draw','Нет чертежей помещений, неясно куда ставить'),O('no_conn','Неясно подключение, крепёж, наконечники'),O('no_route','Неясна трасса кабеля'),O('permit','Нужна карта разрешения')]},
- {id:'ost_res',st:1,gate:true,when:[['type',['spec']]],text:'Что ответил ОСТ?',opts:[O('ok','Замечаний нет'),O('no_tu','Нет ТУ на специзделие'),O('other','Другие замечания')]},
- {id:'buy2',st:1,gate:true,when:[['buy',['unknown']]],text:'По заключениям служб нужна закупка?',hint:'Например, ОГТ или ОСТ сформировали закупочную ведомость.',opts:[O('yes','Да, нужна','Появится запрос в ОВК'),O('no','Нет')]},
- {id:'shops',st:1,gate:true,kind:'shops',text:'По каким цехам ОПП распределил работы?',hint:'Список цехов меняется в настройках.'},
- {id:'feasible',st:1,gate:true,text:'Итог по заключениям: работы выполнимы?',opts:[O('yes','Да'),O('partial','Частично или с условиями'),O('no','Нет, готовим отказ')]},
-
- {id:'terms',st:2,gate:true,when:[['feasible',CAN]],text:'Сроки цехов и поставок укладываются в требование заказчика?',opts:[O('yes','Да'),O('no','Нет, нужно согласовать срок')]},
-
- {id:'reply',st:4,kind:'multi',when:[['feasible',CAN]],text:'Что пришло от заказчика после КП?',hint:'Можно выбрать несколько.',opts:[O('contract','Запрос договора'),O('guarantee','Гарантийное письмо'),O('rkm','Запрос расчётно-калькуляционных материалов'),O('none','Ничего или отказ')]},
- {id:'signs',st:4,when:[['goz',['yes']],['reply',['contract','guarantee']]],text:'На письме 2 подписи, одна из них ВП?',hint:'По ГОЗ без двух подписей общество к работам не приступает.',opts:[O('yes','Да'),O('no','Нет')]},
- {id:'signer',st:4,when:[['reply',['contract','guarantee']]],text:'Подписал директор или лицо с доверенностью на финансы?',opts:[O('yes','Да'),O('no','Нет или неясно')]}
+ {id:'buy',st:0,text:'Закупка оборудования, кабеля или материалов нужна?',hint:'Если закупка точно нужна, запрос в ОВК уйдёт сразу. Если неясно, вопрос вернётся после заключений.',opts:[O('yes','Да, сразу понятно','Запрос в ОВК вместе со службами'),O('unknown','Станет ясно после заключений служб'),O('no','Нет, закупка не нужна')]},
+ {id:'ogt_res',st:1,after:['tz_ogt'],kind:'multi',text:'Что ответил ОГТ?',opts:[O('ok','Технология есть, замечаний нет'),O('no_tech','Нет технологии'),O('no_docs','Нет ремонтной документации'),O('other','Другие замечания')]},
+ {id:'ogk_res',st:1,after:['tz_ogk'],kind:'multi',when:[['type',WORKS]],text:'Что ответил ОГК?',opts:[O('ok','Замечаний нет'),O('no_draw','Нет чертежей помещений, неясно куда ставить'),O('no_conn','Неясно подключение, крепёж, наконечники'),O('no_route','Неясна трасса кабеля'),O('permit','Нужна карта разрешения')]},
+ {id:'ost_res',st:1,after:['tz_ost'],when:[['type',['spec']]],text:'Что ответил ОСТ?',opts:[O('ok','Замечаний нет'),O('no_tu','Нет ТУ на специзделие'),O('other','Другие замечания')]},
+ {id:'buy2',st:1,after:['tz_ogt'],when:[['buy',['unknown']]],text:'По заключениям служб нужна закупка?',hint:'Например, ОГТ или ОСТ сформировали закупочную ведомость.',opts:[O('yes','Да, нужна','Появится запрос в ОВК'),O('no','Нет')]},
+ {id:'shops',st:1,after:['tz_opp'],kind:'shops',text:'По каким цехам ОПП распределил работы?',hint:'Список цехов меняется в настройках.'},
+ {id:'feasible',st:1,after:['tz_ogt'],text:'Итог по заключениям: работы выполнимы?',opts:[O('yes','Да'),O('partial','Частично или с условиями'),O('no','Нет, готовим отказ')]},
+ {id:'terms',st:2,after:['lab'],when:[['feasible',CAN]],text:'Сроки цехов и поставок укладываются в требование заказчика?',opts:[O('yes','Да'),O('no','Нет, нужно согласовать срок')]},
+ {id:'reply',st:4,when:[['feasible',CAN]],kind:'multi',text:'Что пришло от заказчика?',hint:'Бывает, что гарантийка или запрос договора приходят раньше, чем КП готово. Можно отвечать в любой момент.',opts:[O('contract','Запрос договора'),O('guarantee','Гарантийное письмо'),O('rkm','Запрос расчётно-калькуляционных материалов'),O('none','Ничего или отказ')]},
+ {id:'signs',st:4,when:[['goz',['yes']],['reply',GO]],text:'На письме 2 подписи, одна из них ВП?',hint:'По ГОЗ без двух подписей общество к работам не приступает.',opts:[O('yes','Да'),O('no','Нет')]},
+ {id:'signer',st:4,when:[['reply',GO]],text:'Подписал директор или лицо с доверенностью на финансы?',opts:[O('yes','Да'),O('no','Нет или неясно')]}
 ],tasks:[
  {id:'reg',st:0,title:'Зарегистрировать заявку',hint:'Входящий номер, карточка в журнале.'},
- {id:'docs_req',st:0,when:[['docs',['partial','none']]],title:'Запросить документацию у заказчика',hint:'Ремонтная документация, чертежи помещений, схемы подключения, ТУ.'},
- {id:'rewrite',st:0,when:[['gost',['rewrite']]],title:'Отправить заказчику предложение по формулировке',hint:'Текст письма собран в комментарии. Отредактируйте и отправьте.'},
- {id:'internal',st:0,when:[['gost',['internal']]],title:'Подготовить уточнённую формулировку для служб',hint:'Приложить исправленный текст к рассылке.'},
+ {id:'docs_req',st:0,after:['reg'],when:[['docs',['partial','none']]],title:'Запросить документацию у заказчика',hint:'Ремонтная документация, чертежи помещений, схемы подключения, ТУ.'},
+ {id:'rewrite',st:0,after:['reg'],when:[['gost',['rewrite']]],title:'Отправить заказчику предложение по формулировке',hint:'Текст письма собран в комментарии. Отредактируйте и отправьте.'},
+ {id:'internal',st:0,after:['reg'],when:[['gost',['internal']]],title:'Подготовить уточнённую формулировку для служб',hint:'Приложить исправленный текст к рассылке.'},
  {id:'heavy',st:0,when:[['weight',['yes','unknown']]],title:'Решить вопрос с подъёмом груза >15 кг',hint:'Мы не поднимаем оборудование тяжелее 15 кг. Такелаж силами заказчика или отдельной строкой в КП.'},
  {id:'cable_date',st:0,when:[['cond',['cable_date']]],title:'Зафиксировать требование по году выпуска кабеля',hint:'Сообщить ОВК и цеху Каб: кабель со склада старше требуемого года не использовать.'},
  {id:'special',st:0,when:[['cond',['other']]],title:'Записать особые условия заказчика',hint:'Разослать службам вместе с заявкой.'},
 
- {id:'tz_ogt',st:1,title:'Заключение ОГТ',hint:'Возможность работ, наличие технологии, методики, закупочная ведомость.'},
- {id:'tz_ogk',st:1,when:[['type',WORKS]],title:'Заключение ОГК',hint:'Электросхемы, чертежи помещений, места установки, крепёж, трассы кабеля, подключение и наконечники, карты разрешений, ТУ на оборудование. При крупном проекте база данных: оборудование, индексы, прокладка, подключение.'},
- {id:'tz_ost',st:1,when:[['type',['spec']]],title:'Заключение ОСТ по спецтехнике',hint:'ОСТ закрывает функции ОГК, ОГТ и ОПП для спецтехники. Проверить наличие ТУ на специзделие.'},
- {id:'tz_opp',st:1,title:'Ведомость распределения работ (ОПП)',hint:'ОПП выделяет работы и распределяет их по цехам-исполнителям.'},
- {id:'tz_ovk',st:1,when:[['buy',['yes']]],title:'Запрос в ОВК',hint:'Возможность закупки оборудования и кабеля, сроки поставки, наличие на складах и в других заказах.'},
- {id:'ovk_late',st:1,when:[['buy2',['yes']]],title:'Запрос в ОВК по итогам заключений',hint:'Возможность закупки, сроки поставки, наличие на складах и в других заказах.'},
- {id:'fix_ogt',st:1,any:[['ogt_res',['no_tech','no_docs']]],title:'Согласовать с заказчиком: нет технологии или документации',hint:'Предложить разработку технологии ОГТ или запросить ремонтную документацию.'},
- {id:'fix_ogk',st:1,any:[['ogk_res',['no_draw','no_conn','no_route']]],title:'Запросить у заказчика данные для ОГК',hint:'Чертежи помещений, места установки, трассы кабеля, схемы подключения, требования к крепежу и наконечникам.'},
- {id:'permit',st:1,when:[['ogk_res',['permit']]],title:'Оформить карту разрешения (ОГК)',hint:'Отступление от документа.'},
- {id:'fix_ost',st:1,when:[['ost_res',['no_tu']]],title:'Запросить ТУ на специзделие',hint:''},
+ {id:'tz_ogt',st:1,after:['reg'],title:'Заключение ОГТ',hint:'Возможность работ, наличие технологии, методики, закупочная ведомость. Если работы типовые или заключение уже есть, отметьте «Не требуется».'},
+ {id:'tz_ogk',st:1,after:['reg'],when:[['type',WORKS]],title:'Заключение ОГК',hint:'Электросхемы, чертежи помещений, места установки, крепёж, трассы кабеля, подключение и наконечники, карты разрешений, ТУ на оборудование.'},
+ {id:'tz_ost',st:1,after:['reg'],when:[['type',['spec']]],title:'Заключение ОСТ по спецтехнике',hint:'ОСТ закрывает функции ОГК, ОГТ и ОПП для спецтехники. Проверить наличие ТУ на специзделие.'},
+ {id:'tz_ovk',st:1,after:['reg'],when:[['buy',['yes']]],title:'Запрос в ОВК',hint:'Возможность закупки оборудования и кабеля, сроки поставки, наличие на складах и в других заказах.'},
+ {id:'tz_opp',st:1,after:['tz_ogt','tz_ogk','tz_ost'],title:'Ведомость распределения работ (ОПП)',hint:'ОПП выделяет работы и распределяет их по цехам-исполнителям.'},
+ {id:'ovk_late',st:1,after:['tz_ogt'],when:[['buy2',['yes']]],title:'Запрос в ОВК по итогам заключений',hint:'Возможность закупки, сроки поставки, наличие на складах и в других заказах.'},
+ {id:'fix_ogt',st:1,after:['tz_ogt'],any:[['ogt_res',['no_tech','no_docs']]],title:'Согласовать с заказчиком: нет технологии или документации',hint:'Предложить разработку технологии ОГТ или запросить ремонтную документацию.'},
+ {id:'fix_ogk',st:1,after:['tz_ogk'],any:[['ogk_res',['no_draw','no_conn','no_route']]],title:'Запросить у заказчика данные для ОГК',hint:'Чертежи помещений, места установки, трассы кабеля, схемы подключения, требования к крепежу и наконечникам.'},
+ {id:'permit',st:1,after:['tz_ogk'],when:[['ogk_res',['permit']]],title:'Оформить карту разрешения (ОГК)',hint:'Отступление от документа.'},
+ {id:'fix_ost',st:1,after:['tz_ost'],when:[['ost_res',['no_tu']]],title:'Запросить ТУ на специзделие',hint:''},
 
- {id:'lab',st:2,perShop:true,when:[['feasible',CAN]],title:'Трудоёмкость и заявка на материалы',hint:'Цех присылает трудоёмкость, ОЗП и заявку на материалы: от ветоши и наконечников до спецмасла для проверки давления.'},
- {id:'buy_ved',st:2,when:[['feasible',CAN]],any:[['buy',['yes']],['buy2',['yes']]],title:'Закупочная ведомость (ОСТ или ОГТ)',hint:''},
- {id:'ovk_req',st:2,when:[['feasible',CAN]],any:[['buy',['yes']],['buy2',['yes']]],title:'Коммерческие запросы ОВК по закупочной ведомости',hint:''},
- {id:'vp_buy',st:2,when:[['feasible',CAN],['goz',['yes']]],any:[['buy',['yes']],['buy2',['yes']]],title:'Закупка с приёмкой ВП',hint:'По ГОЗ всё с приёмкой ВП. Указать в запросах ОВК.'},
- {id:'cable_chk',st:2,when:[['feasible',CAN],['cond',['cable_date']]],title:'Проверить год выпуска кабеля на складе',hint:'Если на складе кабель старше требуемого, включить закупку нового.'},
- {id:'dism_plan',st:2,when:[['feasible',CAN],['dismount',['yes']]],title:'Учесть демонтаж и доставку в трудоёмкости',hint:'Демонтаж, упаковка, транспорт, приём и входной контроль (Цех Тр).'},
- {id:'terms',st:2,when:[['terms',['no']]],title:'Согласовать срок с заказчиком',hint:'Предложить реальный срок по расчёту цехов и поставок.'},
+ {id:'lab',st:2,perShop:true,after:['tz_opp'],when:[['feasible',CAN]],title:'Трудоёмкость и заявка на материалы',hint:'Цех присылает трудоёмкость, ОЗП и заявку на материалы: от ветоши и наконечников до спецмасла для проверки давления.'},
+ {id:'buy_ved',st:2,after:['lab'],when:[['feasible',CAN]],any:[['buy',['yes']],['buy2',['yes']]],title:'Закупочная ведомость (ОСТ или ОГТ)',hint:'По заявкам цехов на материалы.'},
+ {id:'ovk_req',st:2,after:['buy_ved'],when:[['feasible',CAN]],any:[['buy',['yes']],['buy2',['yes']]],title:'Коммерческие запросы ОВК по закупочной ведомости',hint:''},
+ {id:'vp_buy',st:2,after:['buy_ved'],when:[['feasible',CAN],['goz',['yes']]],any:[['buy',['yes']],['buy2',['yes']]],title:'Закупка с приёмкой ВП',hint:'По ГОЗ всё с приёмкой ВП. Указать в запросах ОВК.'},
+ {id:'cable_chk',st:2,after:['cable_date'],when:[['feasible',CAN],['cond',['cable_date']]],title:'Проверить год выпуска кабеля на складе',hint:'Если на складе кабель старше требуемого, включить закупку нового.'},
+ {id:'dism_plan',st:2,after:['tz_opp'],when:[['feasible',CAN],['dismount',['yes']]],title:'Учесть демонтаж и доставку в трудоёмкости',hint:'Демонтаж, упаковка, транспорт, приём и входной контроль (Цех Тр).'},
+ {id:'terms',st:2,after:['lab'],when:[['terms',['no']]],title:'Согласовать срок с заказчиком',hint:'Предложить реальный срок по расчёту цехов и поставок.'},
 
- {id:'price',st:3,when:[['feasible',CAN]],title:'Цена от экономистов',hint:'Экономисты считают цену по трудоёмкости цехов и закупкам.'},
- {id:'kp_write',st:3,when:[['feasible',CAN]],title:'Составить КП',hint:'На основе заключений служб и цены. Проверить формулировки.'},
- {id:'refusal',st:3,when:[['feasible',['no']]],title:'Подготовить мотивированный отказ',hint:'Со ссылкой на заключения служб.'},
- {id:'kp_send',st:3,final:true,title:'Отправить КП заказчику',hint:'Недоступно, пока по этому КП висят долги.'},
+ {id:'price',st:3,after:['lab','ovk_req'],when:[['feasible',CAN]],title:'Цена от экономистов',hint:'Экономисты считают цену по трудоёмкости цехов и закупкам.'},
+ {id:'kp_write',st:3,after:['price'],when:[['feasible',CAN]],title:'Составить КП',hint:'На основе заключений служб и цены. Проверить формулировки.'},
+ {id:'refusal',st:3,after:['tz_ogt'],when:[['feasible',['no']]],title:'Подготовить мотивированный отказ',hint:'Со ссылкой на заключения служб.'},
+ {id:'kp_send',st:3,after:['kp_write','refusal'],title:'Отправить КП заказчику',hint:''},
 
- {id:'rkm',st:4,when:[['reply',['rkm']]],title:'Подготовить расчётно-калькуляционные материалы',hint:'Вместе с экономистами.'},
+ {id:'rkm',st:4,after:['price'],when:[['reply',['rkm']]],title:'Подготовить расчётно-калькуляционные материалы',hint:'Вместе с экономистами.'},
  {id:'contract',st:4,when:[['reply',['contract']]],title:'Подготовить и согласовать договор',hint:''},
  {id:'sign_fix',st:4,any:[['signs',['no']],['signer',['no']]],title:'Запросить письмо с правильными подписями',hint:'ГОЗ: 2 подписи, одна от ВП. Одна подпись директора или лица с доверенностью на финансы. Без этого к работам не приступаем.'},
  {id:'lost',st:4,when:[['reply',['none']]],title:'Зафиксировать: заказ не состоялся',hint:''},
 
- {id:'ukaz',st:5,when:[['reply',['contract','guarantee']]],title:'Написать указания на работы',hint:'Формулировки должны дословно совпадать с договором или гарантийным письмом.'},
- {id:'dism_go',st:5,when:[['reply',['contract','guarantee']],['dismount',['yes']]],title:'Организовать демонтаж и доставку оборудования',hint:'Цех Тр: приём груза, входной контроль. Тяжелее 15 кг сами не поднимаем.'},
- {id:'mat_go',st:5,when:[['reply',['contract','guarantee']]],title:'Проверить, что заявки цехов на материалы ушли в ОВК',hint:''},
- {id:'naryad',st:5,final:true,when:[['reply',['contract','guarantee']]],title:'Запросить открытие наряд-заказа',hint:'Основание: договор или гарантийное письмо. Для отнесения затрат.'}
+ {id:'naryad',st:5,after:['contract','sign_fix'],when:[['reply',GO]],title:'Запросить открытие наряд-заказа',hint:'Основание: договор или гарантийное письмо. Указать цех-исполнитель.'},
+ {id:'ukaz',st:5,after:['naryad','tz_ogt','tz_ogk','tz_ost','lab','ovk_req','vp_buy','cable_chk'],when:[['reply',GO]],title:'Написать указания на работы',hint:'Формулировки дословно как в договоре или гарантийном письме. Если что-то из нужного до ещё не сделано, оно станет хвостом с напоминанием.'},
+ {id:'dism_go',st:5,after:['naryad'],when:[['reply',GO],['dismount',['yes']]],title:'Организовать демонтаж и доставку оборудования',hint:'Цех Тр: приём груза, входной контроль. Тяжелее 15 кг сами не поднимаем.'},
+ {id:'mat_go',st:5,after:['naryad','lab'],when:[['reply',GO]],title:'Проверить, что заявки цехов на материалы ушли в ОВК',hint:''}
 ]};
 function clone(x){return JSON.parse(JSON.stringify(x))}
 function qById(id){return S.tree.questions.filter(function(q){return q.id===id})[0]}
+function tById(id){return S.tree.tasks.filter(function(t){return t.id===id})[0]}
 function qOpts(q){
   if(!q)return [];
   if(q.kind==='shops')return S.settings.shops.map(function(s,i){return {v:String(i),l:s}});
@@ -370,29 +418,34 @@ function match(a,c){
   if(Array.isArray(v))return v.some(function(x){return c[1].indexOf(String(x))>=0});
   return c[1].indexOf(String(v))>=0;
 }
-function condOk(a,o){
-  var all=(o.when||[]).every(function(c){return match(a,c)});
-  var any=!(o.any&&o.any.length)||o.any.some(function(c){return match(a,c)});
-  return all&&any;
+function clauses(x){return (x.when||[]).concat(x.any||[])}
+/* применимость: yes — нужно, no — не нужно, und — зависит от вопроса без ответа */
+function applic(a,o,depth){
+  depth=(depth||0)+1; if(depth>12)return 'und';
+  function known(c){ if(c[0] in a)return true; var q=qById(c[0]); return !q||applic(a,q,depth)==='no' }
+  var w=o.when||[], y=o.any||[], und=false;
+  for(var i=0;i<w.length;i++){ if(known(w[i])){ if(!match(a,w[i]))return 'no' } else und=true }
+  if(y.length){
+    if(y.some(function(c){return match(a,c)})){}
+    else if(y.every(known))return 'no';
+    else und=true;
+  }
+  return und?'und':'yes';
 }
-function questionsFor(a){return S.tree.questions.filter(function(q){return condOk(a,q)})}
-function isGateTask(t){
-  return (t.when||[]).concat(t.any||[]).some(function(c){var q=qById(c[0]);return q&&q.gate&&q.st===t.st});
-}
-function buildTasks(kp){
+function condOk(a,o){return applic(a,o)==='yes'}
+/* все действия КП с применимостью; задачи «по цехам» раскрываются по выбранным цехам */
+function allTasks(kp){
   var a=kp.answers, T=[], shops=S.settings.shops;
   S.tree.tasks.forEach(function(t){
-    if(!condOk(a,t))return;
-    var base={st:t.st,hint:t.hint||'',gate:isGateTask(t),final:!!t.final,src:t.id};
-    if(t.perShop){
-      (a.shops||[]).forEach(function(i){ if(shops[i]!=null)T.push(Object.assign({},base,{id:t.id+'_'+i,title:t.title+': '+shops[i]})) });
-    } else T.push(Object.assign({},base,{id:t.id,title:t.title}));
+    var ap=applic(a,t), base={st:t.st,hint:t.hint||'',after:t.after||[],src:t.id,app:ap};
+    if(t.perShop&&Array.isArray(a.shops)&&a.shops.length&&ap!=='no'){
+      a.shops.forEach(function(i){ if(shops[i]!=null)T.push(Object.assign({},base,{id:t.id+'_'+i,title:t.title+': '+shops[i]})) });
+    } else T.push(Object.assign({},base,{id:t.id,title:t.title,shopsPending:!!t.perShop&&ap!=='no'}));
   });
-  (kp.custom||[]).forEach(function(t){T.push({id:t.id,st:t.st,title:t.title,hint:t.hint||'',custom:true})});
-  // финальная задача всегда последней в своём этапе
-  T.sort(function(x,y){return (x.st-y.st)||((x.final?1:0)-(y.final?1:0))});
+  (kp.custom||[]).forEach(function(t){T.push({id:t.id,st:t.st,title:t.title,hint:t.hint||'',after:t.after||[],custom:true,app:'yes'})});
   return T;
 }
+function buildTasks(kp){return allTasks(kp).filter(function(t){return t.app==='yes'})}
 function condText(list){
   return (list||[]).map(function(c){
     var q=qById(c[0]); if(!q)return '«?»';
@@ -400,7 +453,6 @@ function condText(list){
     return '«'+q.text.replace(/\?$/,'')+'» = '+(labels.join(' / ')||'—');
   }).join('; ');
 }
-
 
 /* ---------- GOST checker ---------- */
 var RULES=[
@@ -461,6 +513,7 @@ function letterFor(kp){
   return 'Уважаемые коллеги!\nДля подготовки ответа на '+kp.num+' просим уточнить формулировку заявки:\n'+lines.join('\n')+'\n\nПредлагаемая редакция:\n'+g.rewrite;
 }
 
+
 /* ---------- state ---------- */
 function load(){try{var r=localStorage.getItem(LS);return r?JSON.parse(r):null}catch(e){return null}}
 function save(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
@@ -479,62 +532,87 @@ function seed(){
     received:iso(t-3*DAY),deadline:iso(t+6*DAY),urgent:true,example:true,created:Date.now(),
     answers:{goz:'yes',type:['repair','cable','shield'],docs:'partial',dismount:'yes',weight:'yes',cond:['cable_date'],gost:'rewrite',buy:'yes'},
     ts:{reg:{s:'done'},docs_req:{s:'done',c:'Запросили ремонтную документацию на двигатель, письмо исх. 112.'},rewrite:{s:'done',c:''},
-        heavy:{s:'debt',due:iso(t+2*DAY),c:'Двигатель около 60 кг. Отложил: уточнить у заказчика, кто демонтирует и грузит.'},
-        cable_date:{s:'done',who:'ОВК, Цех Каб'},tz_ogt:{s:'done',who:'ОГТ',c:'Технология ремонта есть.'},tz_opp:{s:'open',who:'ОПП'}},
+        heavy:{s:'debt',due:iso(t+2*DAY),need:'до демонтажа',c:'Двигатель около 60 кг. Уточнить у заказчика, кто демонтирует и грузит.'},
+        cable_date:{s:'done',who:'ОВК, Цех Каб'},tz_ogt:{s:'done',who:'ОГТ',c:'Технология ремонта есть.'}},
     finished:false};
   ex.gost=gostCheck(ex.text); ex.ts.rewrite.c=letterFor(ex);
+  var ex3={id:uid(),num:'КП № 0355/26',customer:'Заказчик В',subject:'Типовой монтаж и подключение по гарантийному письму',
+    text:'Выполнить монтаж и подключение оборудования по типовой схеме, кабель КНРк 3×2,5 по ГОСТ, 60 м. Гарантийное письмо прилагается.',
+    received:iso(t-5*DAY),deadline:iso(t+3*DAY),urgent:false,example:true,created:Date.now()-1,
+    answers:{goz:'yes',type:['install','cable'],docs:'full',cond:['none'],gost:'ok',buy:'yes',feasible:'yes',shops:[1],terms:'yes',reply:['guarantee'],signs:'yes',signer:'yes',ogt_res:['ok']},
+    ts:{reg:{s:'done'},
+        tz_ogt:{s:'skip',reason:'Типовые работы, заключение по аналогичному заказу уже есть'},
+        tz_ogk:{s:'skip',reason:'Типовые работы, схема подключения известна'},
+        tz_ovk:{s:'done',who:'ОВК'},tz_opp:{s:'done',who:'ОПП',c:'Работы за ЭМР-1.'},
+        lab_1:{s:'done',who:'ЭМР-1',c:'Трудоёмкость и заявка на материалы получены.'},
+        price:{s:'skip',reason:'Работы по гарантийному письму, КП не понадобилось'},kp_write:{s:'skip',reason:'Работы по гарантийному письму'},kp_send:{s:'skip',reason:'Работы по гарантийному письму'},
+        naryad:{s:'done',c:'Наряд-заказ открыт, цех ЭМР-1.'}},
+    finished:false};
   var ex2={id:uid(),num:'КП № 0351/26',customer:'Заказчик Б',subject:'Монтаж и подключение щита ГРЩ',
     text:'Выполнить монтаж щита распределительного и подключение кабелем КНРк 3×2,5, 120 м, наконечники по ГОСТ 7386, с приёмкой ВП. Документация прилагается.',
-    received:iso(t),deadline:iso(t+14*DAY),urgent:false,example:true,created:Date.now()-1,answers:{},ts:{},finished:false};
-  return {v:1,treeVer:TREE_VER,xp:135,tree:clone(DEF_TREE),kps:[ex,ex2],settings:{shops:DEF_SHOPS.slice()}};
+    received:iso(t),deadline:iso(t+14*DAY),urgent:false,example:true,created:Date.now()-2,answers:{},ts:{},finished:false};
+  return {v:1,treeVer:TREE_VER,xp:135,tree:clone(DEF_TREE),kps:[ex3,ex,ex2],settings:{shops:DEF_SHOPS.slice()}};
 }
 
 var S=load()||seed();
 if(!S.settings)S.settings={shops:[]};
 if(!S.tree)S.tree=clone(DEF_TREE);
 if((S.treeVer||1)<2){var fresh=seed();S.tree=fresh.tree;S.settings.shops=fresh.settings.shops;S.kps=S.kps.filter(function(k){return !k.example}).concat(fresh.kps);S.treeVer=TREE_VER;save()}
-/* точечное обновление стандартных карточек без потери своих правок дерева */
-function patchTree(kind,ids,after){
-  ids.forEach(function(id){
-    var def=DEF_TREE[kind].filter(function(x){return x.id===id})[0], arr=S.tree[kind];
-    var i=arr.findIndex(function(x){return x.id===id});
-    if(i>=0)arr[i]=clone(def);
-    else{var j=arr.findIndex(function(x){return x.id===after[id]});arr.splice(j>=0?j+1:arr.length,0,clone(def))}
+/* переход на версию 4: стандартные карточки заменяются новыми (со связями «нужно до»), свои карточки остаются */
+if((S.treeVer||1)<4){
+  ['questions','tasks'].forEach(function(kind){
+    var mine=S.tree[kind].filter(function(x){return !DEF_TREE[kind].some(function(d){return d.id===x.id})});
+    mine.forEach(function(x){delete x.gate});
+    S.tree[kind]=clone(DEF_TREE[kind]).concat(mine);
   });
+  var fresh4=seed();
+  S.kps=S.kps.filter(function(k){return !k.example}).concat(fresh4.kps);
+  S.treeVer=4;save();
 }
-if((S.treeVer||1)<3){
-  patchTree('questions',['buy','buy2'],{buy2:'ost_res'});
-  patchTree('tasks',['tz_ovk','ovk_late','buy_ved','ovk_req','vp_buy'],{ovk_late:'tz_ovk'});
-  S.treeVer=3;save();
-}
-var ui={view:'home',kpId:null,tab:'tasks',filter:'active',sheet:null,qdraft:null,toast:null,pulse:null,confirm:null};
+var ui={view:'home',kpId:null,tab:'map',filter:'active',sheet:null,qdraft:null,qid:null,toast:null,confirm:null};
 if(window.claude&&window.claude.hot&&window.claude.hot.data&&window.claude.hot.data.ui)ui=Object.assign(ui,window.claude.hot.data.ui);
 try{window.claude&&window.claude.hot&&window.claude.hot.snapshot&&window.claude.hot.snapshot(function(){return {ui:ui}})}catch(e){}
 
 function kpById(id){return S.kps.filter(function(k){return k.id===id})[0]}
 function stOf(kp,t){return kp.ts[t.id]||{s:'open'}}
-function isClosed(kp,t){var s=stOf(kp,t).s;return s==='done'||s==='debt'}
+var CLOSED=['done','skip','debt'];
 
+/* состояние КП: доступные действия, блокировки, хвосты, вопросы */
 function analyze(kp){
-  var a=kp.answers, tasks=buildTasks(kp), stages=[], unlocked=true;
-  for(var i=0;i<N;i++){
-    var sq=questionsFor(a).filter(function(q){return q.st===i});
-    var st=tasks.filter(function(t){return t.st===i});
-    var baseClosed=st.filter(function(t){return !t.gate&&!t.final}).every(function(t){return isClosed(kp,t)});
-    var pend=sq.filter(function(q){return !(q.id in a)});
-    var avail=pend.filter(function(q){return !q.gate||baseClosed});
-    var open=st.filter(function(t){return !isClosed(kp,t)});
-    var done=unlocked&&pend.length===0&&open.length===0;
-    stages.push({i:i,unlocked:unlocked,done:done,avail:unlocked?avail:[],pend:pend,tasks:st,open:open,
-      debts:st.filter(function(t){return stOf(kp,t).s==='debt'})});
-    unlocked=unlocked&&done;
+  var a=kp.answers, tasks=allTasks(kp), st={};
+  function group(id){return tasks.filter(function(t){return t.id===id||t.src===id})}
+  function sat(t){return CLOSED.indexOf(stOf(kp,t).s)>=0||t.app==='no'}
+  function unmet(t){
+    var out=[];
+    (t.after||[]).forEach(function(p){ group(p).forEach(function(m){ if(!sat(m)&&out.indexOf(m)<0)out.push(m) }) });
+    return out;
   }
-  var active=stages.filter(function(s){return s.unlocked&&!s.done})[0]||null;
-  var allT=tasks.length, closedT=tasks.filter(function(t){return stOf(kp,t).s==='done'}).length;
-  var qa=questionsFor(a), qTotal=qa.length, qDone=qa.filter(function(q){return q.id in a}).length;
-  var pct=Math.round(100*(closedT+qDone)/Math.max(1,allT+qTotal));
-  var debts=tasks.filter(function(t){return stOf(kp,t).s==='debt'});
-  return {tasks:tasks,stages:stages,active:active,pct:stages[N-1].done?100:Math.min(99,pct),debts:debts};
+  tasks.forEach(function(t){
+    var s=stOf(kp,t).s;
+    st[t.id]=s!=='open'?s:t.app==='no'?'off':(t.app==='und'||t.shopsPending)?'und':unmet(t).length?'blocked':'avail';
+  });
+  function groupSat(ids){return (ids||[]).every(function(p){return group(p).every(sat)})}
+  var qs=S.tree.questions.filter(function(q){return applic(a,q)==='yes'});
+  var ready=qs.filter(function(q){return !(q.id in a)&&groupSat(q.after)});
+  var later=qs.filter(function(q){return !(q.id in a)&&!groupSat(q.after)});
+  var answered=S.tree.questions.filter(function(q){return q.id in a});
+  var stages=[];
+  for(var i=0;i<N;i++){
+    var sts=tasks.filter(function(t){return t.st===i&&st[t.id]!=='off'});
+    stages.push({i:i,tasks:sts,
+      done:sts.length>0&&sts.every(function(t){return CLOSED.indexOf(st[t.id])>=0})&&!ready.concat(later).some(function(q){return q.st===i}),
+      empty:!sts.length,
+      active:sts.some(function(t){return st[t.id]==='avail'})||ready.some(function(q){return q.st===i}),
+      debts:sts.filter(function(t){return st[t.id]==='debt'})});
+  }
+  var live=tasks.filter(function(t){return st[t.id]!=='off'});
+  var closedN=live.filter(function(t){return st[t.id]==='done'||st[t.id]==='skip'}).length;
+  var debts=live.filter(function(t){return st[t.id]==='debt'});
+  var avail=live.filter(function(t){return st[t.id]==='avail'});
+  var finished=live.every(function(t){return st[t.id]==='done'||st[t.id]==='skip'})&&!ready.length&&!later.length;
+  var active=stages.filter(function(s){return s.active})[0]||stages.filter(function(s){return !s.done&&!s.empty})[0]||null;
+  return {tasks:tasks,st:st,unmet:unmet,sat:sat,group:group,stages:stages,ready:ready,later:later,answered:answered,avail:avail,debts:debts,
+    finished:finished,active:active,pct:finished?100:Math.round(100*closedN/Math.max(1,live.length))};
 }
 
 function addXp(n,msg){
@@ -545,76 +623,243 @@ function addXp(n,msg){
 function lvl(xp){var n=Math.floor(xp/100)+1;return {n:n,title:TITLES[Math.min(TITLES.length-1,n-1)],cur:xp%100}}
 
 var toastTimer;
-function toast(html){ui.toast=html;renderToast();clearTimeout(toastTimer);toastTimer=setTimeout(function(){ui.toast=null;renderToast()},2600)}
+function toast(html){ui.toast=html;renderToast();clearTimeout(toastTimer);toastTimer=setTimeout(function(){ui.toast=null;renderToast()},2800)}
 function renderToast(){var el=document.getElementById('toast');if(el)el.remove();if(!ui.toast)return;el=document.createElement('div');el.id='toast';el.className='toast';el.setAttribute('role','status');el.innerHTML=ui.toast;document.body.appendChild(el)}
 
-/* track stage completion to celebrate unlocks */
+/* после любого изменения: сообщить, что открылось, отметить закрытие КП */
 function afterChange(kp,prev){
   var now=analyze(kp);
-  for(var i=0;i<N;i++){
-    if(!prev.stages[i].done&&now.stages[i].done){
-      if(i<N-1){ui.pulse=i+1;setTimeout(function(){toast('Операция '+OPS[i]+' пройдена. Открыт этап '+OPS[i+1]+' «'+STAGES[i+1]+'»')},900)}
-      else if(!kp.finished){kp.finished=true;setTimeout(function(){addXp(50,'КП закрыто.')},900)}
-      break;
-    }
-  }
+  var opened=now.avail.filter(function(t){return prev.st[t.id]!=='avail'});
+  if(opened.length)setTimeout(function(){toast('Открылось: '+opened.slice(0,3).map(function(t){return esc(t.title)}).join(', ')+(opened.length>3?' и ещё '+(opened.length-3):''))},1500);
+  if(now.finished&&!kp.finished){kp.finished=true;setTimeout(function(){addXp(50,'КП закрыто.')},900)}
+  if(!now.finished)kp.finished=false;
   save();render();
 }
 
 /* ---------- views ---------- */
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 
-function routeHtml(an,big,kpId){
+function routeHtml(an,big){
   return '<div class="route'+(big?' big':'')+'">'+an.stages.map(function(s){
-    var cls=s.done?'done':(s.unlocked?'active':'');
-    if(big&&ui.pulse===s.i)cls+=' pulse';
+    var cls=s.done?'done':s.active?'active':'';
     return '<div class="op '+cls+'"><span class="node">'+(s.done?I.check.replace('stroke-width="3"','stroke-width="3" width="14" height="14"'):OPS[s.i])+'</span>'+
-      (s.debts.length?'<span class="dbt">'+s.debts.length+'</span>':'')+
-      '<span class="nm">'+STAGES_SHORT[s.i]+'</span></div>';
+      (s.debts.length?'<span class="dbt">'+s.debts.length+'</span>':'')+'<span class="nm">'+STAGES_SHORT[s.i]+'</span></div>';
   }).join('')+'</div>';
-}
-
-function milestoneFor(kp,st){
-  var f=buildTasks(kp).filter(function(t){return t.final&&t.st>=st}).sort(function(x,y){return x.st-y.st})[0];
-  return f?OPS[f.st]+' «'+f.title+'»':'этапа';
 }
 function allDebts(){
   var out=[];
-  S.kps.forEach(function(kp){ if(kp.finished)return; analyze(kp).debts.forEach(function(t){ out.push({kp:kp,t:t,due:stOf(kp,t).due}) }) });
-  out.sort(function(x,y){return (x.due||'9').localeCompare(y.due||'9')});
+  S.kps.forEach(function(kp){ if(kp.finished)return; analyze(kp).debts.forEach(function(t){ out.push({kp:kp,t:t,s:stOf(kp,t)}) }) });
+  out.sort(function(x,y){return (x.s.due||'9').localeCompare(y.s.due||'9')});
   return out;
 }
-
 function debtRow(d){
-  var n=daysLeft(d.due), cls=n!=null&&n<=1?'urgent':'debt';
+  var n=daysLeft(d.s.due), cls=n!=null&&n<=1?'urgent':'debt';
   return '<button class="debt-row" data-act="openTask" data-kp="'+d.kp.id+'" data-t="'+d.t.id+'">'+
-    '<span class="chip '+cls+' mono">'+fmt(d.due)+'</span><span class="t">'+esc(d.t.title)+
-    '<small>'+esc(d.kp.num)+' · погасить '+dl(n)+', иначе срыв '+esc(milestoneFor(d.kp,d.t.st))+'</small></span></button>';
+    '<span class="chip '+cls+' mono">'+fmt(d.s.due)+'</span><span class="t">'+esc(d.t.title)+
+    '<small>'+esc(d.kp.num)+' · нужно '+esc(d.s.need||'к сроку')+' · напомнить '+dl(n)+'</small></span></button>';
 }
-
 function viewHome(){
   var L=lvl(S.xp), debts=allDebts();
   var list=S.kps.filter(function(k){return ui.filter==='active'?!k.finished:k.finished})
     .sort(function(x,y){return (x.urgent===y.urgent?0:x.urgent?-1:1)||(x.deadline||'').localeCompare(y.deadline||'')});
-  var h='<div class="top"><h1 class="disp">Хаб КП</h1><button class="iconbtn" data-act="openTree" aria-label="Дерево вопросов">'+I.tree+'</button><button class="iconbtn" data-act="settings" aria-label="Настройки">'+I.gear+'</button></div><div class="stack">';
+  var h='<div class="top"><h1 class="disp">Хаб КП</h1><button class="iconbtn" data-act="openTree" aria-label="Дерево">'+I.tree+'</button><button class="iconbtn" data-act="settings" aria-label="Настройки">'+I.gear+'</button></div><div class="stack">';
   h+='<div class="level"><div class="lvl-badge">'+L.n+'</div><div><div class="row"><b>'+L.title+'</b><span class="mono muted">'+L.cur+' / 100 XP</span></div><div class="bar"><i style="width:'+L.cur+'%"></i></div></div></div>';
-  if(debts.length){
-    h+='<div class="debts"><h3>'+I.clock.replace('<svg','<svg width="18" height="18"')+'Долги по срочным работам: '+debts.length+'</h3>'+debts.slice(0,4).map(debtRow).join('')+'</div>';
-  }
+  if(debts.length)h+='<div class="debts"><h3>'+I.clock.replace('<svg','<svg width="18" height="18"')+'Хвосты: '+debts.length+'</h3>'+debts.slice(0,5).map(debtRow).join('')+'</div>';
   h+='<div class="seg" role="group"><button data-act="filter" data-v="active" aria-pressed="'+(ui.filter==='active')+'">В работе ('+S.kps.filter(function(k){return !k.finished}).length+')</button><button data-act="filter" data-v="done" aria-pressed="'+(ui.filter==='done')+'">Закрытые ('+S.kps.filter(function(k){return k.finished}).length+')</button></div>';
   if(!list.length)h+='<div class="empty">'+(ui.filter==='active'?'Нет КП в работе. Нажмите «Новое КП», чтобы внести первое.':'Закрытых КП пока нет.')+'</div>';
   list.forEach(function(kp){
     var an=analyze(kp), n=daysLeft(kp.deadline);
-    var stageName=an.active?OPS[an.active.i]+' '+STAGES[an.active.i]:'Закрыто';
     h+='<button class="kp" data-act="openKp" data-id="'+kp.id+'"><div class="kp-head"><span class="kp-num">'+esc(kp.num)+'</span><span class="muted" style="font-size:13px">'+esc(kp.customer)+'</span></div>'+
       '<div class="kp-subj">'+esc(kp.subject)+'</div>'+routeHtml(an,false)+
       '<div class="chips">'+(kp.urgent?'<span class="chip urgent">Срочно</span>':'')+
-      (an.debts.length?'<span class="chip debt">Долгов: '+an.debts.length+'</span>':'')+
-      '<span class="chip">'+esc(stageName)+'</span>'+
-      (kp.deadline&&!kp.finished?'<span class="chip '+(n<0?'urgent':n<=2?'warn':'')+'">Ответ '+fmt(kp.deadline)+', '+dl(n)+'</span>':'')+
+      (an.ready.length?'<span class="chip warn">Вопросов: '+an.ready.length+'</span>':'')+
+      (an.avail.length?'<span class="chip">Можно сделать: '+an.avail.length+'</span>':'')+
+      (an.debts.length?'<span class="chip debt">Хвостов: '+an.debts.length+'</span>':'')+
+      (kp.deadline&&!kp.finished?'<span class="chip '+(n<0?'urgent':n<=2?'warn':'')+'">Срок '+fmt(kp.deadline)+', '+dl(n)+'</span>':'')+
       (kp.example?'<span class="chip ex">Пример</span>':'')+'</div></button>';
   });
   h+='</div><button class="fab" data-act="newKp">'+I.plus+'Новое КП</button>';
+  return h;
+}
+
+function viewKp(){
+  var kp=kpById(ui.kpId); if(!kp){ui.view='home';return viewHome()}
+  var an=analyze(kp), n=daysLeft(kp.deadline);
+  var live=an.tasks.filter(function(t){return an.st[t.id]!=='off'});
+  var doneN=live.filter(function(t){return an.st[t.id]==='done'||an.st[t.id]==='skip'}).length;
+  var h='<div class="top"><button class="iconbtn" data-act="home" aria-label="К списку">'+I.back+'</button><h1 class="mono" style="font-size:15px">'+esc(kp.num)+'</h1>'+
+    '<button class="iconbtn" data-act="editKp" aria-label="Карточка КП">'+I.gear+'</button></div><div class="stack">';
+  h+='<div class="hero"><div><div class="label">'+esc(kp.customer||'Заказчик не указан')+'</div><div class="subj">'+esc(kp.subject)+'</div></div>'+routeHtml(an,true)+
+    '<div class="facts"><div class="fact"><b>'+an.pct+'%</b><span>готовность</span></div><div class="fact"><b>'+doneN+'/'+live.length+'</b><span>действий</span></div>'+
+    '<div class="fact"><b style="color:'+(n!=null&&n<0?'var(--danger)':n!=null&&n<=2?'var(--warn)':'inherit')+'">'+fmt(kp.deadline)+'</b><span>'+(kp.finished?'закрыто':esc(dl(n)||'срок'))+'</span></div></div>';
+  if(an.finished)h+='<div class="cta done"><span>КП закрыто<small>Все действия сделаны или не потребовались</small></span>'+I.flag+'</div>';
+  else{
+    if(an.ready.length)h+='<button class="cta" data-act="startQ"><span>Ответить на вопросы: '+an.ready.length+'<small>Ответы открывают или закрывают ветки действий</small></span>'+I.arrow+'</button>';
+    if(an.avail.length)h+='<button class="cta'+(an.ready.length?' ghost':'')+'" data-act="showTasks"><span>Можно сделать: '+an.avail.length+'<small>'+esc(an.avail.slice(0,2).map(function(t){return t.title}).join(', '))+(an.avail.length>2?'…':'')+'</small></span>'+I.arrow+'</button>';
+  }
+  h+='<div class="toggle"><div class="t">Срочно<small>'+(kp.urgent?'КП наверху списка':'Отметить как срочное')+'</small></div><button class="sw" role="switch" aria-checked="'+!!kp.urgent+'" data-act="urgent" aria-label="Срочно"></button></div></div>';
+  if(an.debts.length){
+    var dsorted=an.debts.slice().sort(function(x,y){return (stOf(kp,x).due||'9').localeCompare(stOf(kp,y).due||'9')});
+    h+='<div class="debts"><h3>Хвосты по этому КП: '+an.debts.length+'</h3>'+dsorted.slice(0,ui.allDebts?99:3).map(function(t){return debtRow({kp:kp,t:t,s:stOf(kp,t)})}).join('')+
+      (an.debts.length>3?'<button class="btn" data-act="allDebts">'+(ui.allDebts?'Свернуть':'Показать все')+'</button>':'')+'</div>';
+  }
+  h+='<div class="seg" role="tablist">'+[['map','Карта'],['tasks','Действия'],['questions','Вопросы'+(an.ready.length?' ('+an.ready.length+')':'')],['text','Заявка']].map(function(x){return '<button data-act="tab" data-v="'+x[0]+'" aria-pressed="'+(ui.tab===x[0])+'">'+x[1]+'</button>'}).join('')+'</div>';
+  if(ui.tab==='map')h+=graphHtml(kp);
+  if(ui.tab==='tasks')h+=tasksHtml(kp,an);
+  if(ui.tab==='questions')h+=questionsHtml(kp,an);
+  if(ui.tab==='text')h+=textHtml(kp);
+  return h+'</div>';
+}
+
+var ST_ORDER={avail:0,debt:1,blocked:2,und:3,done:4,skip:5,off:6};
+function blockerText(an,t){
+  var u=an.unmet(t); if(!u.length)return '';
+  return 'ждёт: '+u.slice(0,3).map(function(m){return m.title}).join(', ')+(u.length>3?' и ещё '+(u.length-3):'');
+}
+function undText(kp,t){
+  var src=t.custom?null:tById(t.src||t.id); if(!src)return '';
+  if(t.shopsPending&&!Array.isArray(kp.answers.shops))return 'зависит от вопроса о цехах';
+  var qs=clauses(src).filter(function(c){return !(c[0] in kp.answers)}).map(function(c){var q=qById(c[0]);return q?'«'+q.text+'»':''}).filter(Boolean);
+  return qs.length?'зависит от вопроса '+qs[0]:'';
+}
+function taskRow(kp,an,t){
+  var st=an.st[t.id], s=stOf(kp,t);
+  var box=st==='done'?I.check:st==='debt'?I.clock:st==='skip'?'–':'';
+  var sub=st==='debt'?'Хвост: нужно '+(s.need||'к сроку')+', до '+fmt(s.due):st==='skip'?'Не требуется'+(s.reason?': '+s.reason:''):st==='blocked'?blockerText(an,t):st==='und'?undText(kp,t):'';
+  return '<button class="task st-'+st+'" data-act="openTask" data-kp="'+kp.id+'" data-t="'+t.id+'"><span class="box">'+box+'</span><span class="tt"><b>'+esc(t.title)+'</b>'+
+    (sub?'<small>'+esc(sub)+'</small>':'')+(s.who?'<small>Исполнитель: '+esc(s.who)+'</small>':'')+(s.c?'<small>'+I.chat+' '+esc(s.c.split('\n')[0].slice(0,60))+'</small>':'')+'</span>'+
+    (st==='avail'?'<span class="chip ok">можно</span>':'')+'</button>';
+}
+function tasksHtml(kp,an){
+  var h='', offN=0;
+  an.stages.forEach(function(s){
+    var list=an.tasks.filter(function(t){return t.st===s.i&&an.st[t.id]!=='off'});
+    offN+=an.tasks.filter(function(t){return t.st===s.i&&an.st[t.id]==='off'}).length;
+    if(!list.length)return;
+    list.sort(function(x,y){return ST_ORDER[an.st[x.id]]-ST_ORDER[an.st[y.id]]});
+    h+='<div class="group"><div class="group-h"><span class="mono">'+OPS[s.i]+'</span>'+STAGES[s.i]+(s.done?' <span class="chip ok">пройдено</span>':'')+'</div>'+list.map(function(t){return taskRow(kp,an,t)}).join('')+'</div>';
+  });
+  if(offN)h+='<p class="note">Ещё '+offN+' действий не нужны в этом КП по вашим ответам. Они видны на карте бледным пунктиром.</p>';
+  h+='<button class="btn" data-act="newCustom">+ Своё действие в это КП</button>';
+  return h;
+}
+function optLabel(q,v){
+  if(q.kind==='shops')return (v||[]).map(function(i){return S.settings.shops[i]||('Цех #'+(+i+1))}).join(', ')||'не выбрано';
+  if(q.kind==='multi')return (q.opts||[]).filter(function(o){return (v||[]).indexOf(o.v)>=0}).map(function(o){return o.l}).join(', ')||'не выбрано';
+  var o=(q.opts||[]).filter(function(o){return o.v===v})[0];return o?o.l:v;
+}
+function impactOf(qid){
+  return S.tree.tasks.filter(function(t){return clauses(t).some(function(c){return c[0]===qid})}).map(function(t){return t.title});
+}
+function qRow(kp,q,mode,an){
+  var imp=impactOf(q.id);
+  var sub=mode==='answered'?'<b class="ans-v">'+esc(optLabel(q,kp.answers[q.id]))+'</b>':
+    mode==='later'?'обычно после: '+esc((q.after||[]).map(function(p){var t=tById(p);return t?t.title:p}).join(', ')):'';
+  return '<button class="qrow q-'+mode+'" data-act="openQ" data-q="'+esc(q.id)+'"><span class="qi">?</span><span class="tt"><span class="qt">'+esc(q.text)+'</span>'+(sub?'<small>'+sub+'</small>':'')+
+    (imp.length?'<small class="imp">Влияет на: '+esc(imp.slice(0,3).join(', '))+(imp.length>3?' и ещё '+(imp.length-3):'')+'</small>':'')+'</span></button>';
+}
+function questionsHtml(kp,an){
+  var h='<p class="note">Вопрос не блокирует работу. Он открывает или закрывает ветки действий. Пока ответа нет, зависящие действия отмечены на карте жёлтым пунктиром.</p>';
+  if(an.ready.length)h+='<div class="group"><div class="group-h">Ждут ответа</div>'+an.ready.map(function(q){return qRow(kp,q,'ready',an)}).join('')+'</div>';
+  if(an.later.length)h+='<div class="group"><div class="group-h">Позже, но можно ответить уже сейчас</div>'+an.later.map(function(q){return qRow(kp,q,'later',an)}).join('')+'</div>';
+  if(an.answered.length)h+='<div class="group"><div class="group-h">Отвечено</div>'+an.answered.map(function(q){return qRow(kp,q,'answered',an)}).join('')+'</div>';
+  return h;
+}
+
+function refsTo(qid,v){
+  var out=[];
+  [['questions',S.tree.questions],['tasks',S.tree.tasks]].forEach(function(p){
+    p[1].forEach(function(x){
+      var inAll=(x.when||[]).some(function(c){return c[0]===qid&&c[1].indexOf(v)>=0});
+      var inAny=(x.any||[]).some(function(c){return c[0]===qid&&c[1].indexOf(v)>=0});
+      if(inAll||inAny)out.push({kind:p[0],x:x,any:inAny&&!inAll});
+    });
+  });
+  return out;
+}
+function viewQ(){
+  var kp=kpById(ui.kpId); if(!kp){ui.view='home';return viewHome()}
+  var an=analyze(kp), q=ui.qid?qById(ui.qid):an.ready[0];
+  if(!q){ui.view='kp';return viewKp()}
+  var h='<div class="top"><button class="iconbtn" data-act="backKp" aria-label="К КП">'+I.back+'</button><h1 style="font-size:14px"><span class="mono" style="color:var(--accent)">'+OPS[q.st]+'</span> '+STAGES[q.st]+'<br><span class="mono muted" style="font-size:12px;font-weight:500">'+esc(kp.num)+(an.ready.length>1?' · вопросов осталось: '+an.ready.length:'')+'</span></h1></div>';
+  h+='<div class="stack"><div class="qcard" id="qcard"><div class="label">Вопрос</div><h2>'+esc(q.text)+'</h2>'+(q.hint?'<div class="qhint">'+esc(q.hint)+'</div>':'');
+  if(q.id in kp.answers)h+='<div class="qhint">Сейчас: <b>'+esc(optLabel(q,kp.answers[q.id]))+'</b>. Выберите новый ответ.</div>';
+  if(q.kind==='gost'){
+    var txt=ui.qdraft!=null&&!Array.isArray(ui.qdraft)?ui.qdraft:(kp.text||'');
+    var g=gostCheck(txt);
+    h+='<textarea id="gostText" aria-label="Текст заявки">'+esc(txt)+'</textarea><div class="btns"><button class="btn" data-act="gostRun">Проверить</button></div>';
+    if(txt.trim()){
+      h+='<div class="label">Найдено: '+g.findings.length+'</div><div style="white-space:pre-wrap;font-size:14px">'+highlight(txt,g.marks)+'</div>';
+      g.findings.forEach(function(f){h+='<div class="find'+(f.soft?' info':'')+'"><b>«'+esc(f.term)+'»</b><span>'+esc(f.why)+'</span><span>Предлагается: '+esc(f.fix)+'</span>'+(f.ref?'<span class="ref">'+esc(f.ref)+'</span>':'')+'</div>'});
+      if(g.rewrite!==txt)h+='<div class="label">Предлагаемая редакция</div><div class="rewrite">'+esc(g.rewrite)+'</div>';
+      if(!g.findings.length)h+='<div class="find info"><b>Явных замечаний нет</b><span>Проверьте марки, допуски и количество вручную.</span></div>';
+    }
+  }
+  function opens(o){
+    var r=refsTo(q.id,o.v).filter(function(x){return x.kind==='tasks'}).map(function(x){return x.x.title});
+    return r.length?'<small class="imp">откроет: '+esc(r.slice(0,3).join(', '))+(r.length>3?' и ещё '+(r.length-3):'')+'</small>':'';
+  }
+  if(q.kind==='multi'||q.kind==='shops'){
+    var sel=Array.isArray(ui.qdraft)?ui.qdraft:[];
+    h+='<div class="opts">'+qOpts(q).map(function(o){var on=sel.indexOf(o.v)>=0;return '<button class="opt" data-act="multi" data-v="'+esc(o.v)+'" aria-pressed="'+on+'"><span class="k">'+(on?'✓':'')+'</span><span>'+esc(o.l)+(o.s?'<small>'+esc(o.s)+'</small>':'')+opens(o)+'</span></button>'}).join('')+'</div>'+
+      '<button class="cta" data-act="multiOk" data-q="'+esc(q.id)+'"'+(sel.length?'':' disabled style="opacity:.5"')+'><span>Готово<small>Выбрано: '+sel.length+'</small></span>'+I.arrow+'</button>';
+  } else {
+    h+='<div class="opts">'+q.opts.map(function(o,i){return '<button class="opt" data-act="answer" data-q="'+esc(q.id)+'" data-v="'+esc(o.v)+'"><span class="k">'+String.fromCharCode(1040+i)+'</span><span>'+esc(o.l)+(o.s?'<small>'+esc(o.s)+'</small>':'')+opens(o)+'</span></button>'}).join('')+'</div>';
+  }
+  h+='</div><div class="btns"><button class="btn" data-act="edQ" data-id="'+esc(q.id)+'">Изменить этот вопрос</button><button class="btn" data-act="newQ" data-st="'+q.st+'">+ Добавить вопрос</button></div></div>';
+  return h;
+}
+
+/* ---------- карточка действия ---------- */
+function sheetTask(){
+  var kp=kpById(ui.sheet.kp); if(!kp)return '';
+  var an=analyze(kp), t=an.tasks.filter(function(x){return x.id===ui.sheet.t})[0]; if(!t)return '';
+  var st=an.st[t.id], s=stOf(kp,t);
+  var h='<div class="grab"></div><div><div class="label"><span class="mono" style="color:var(--accent)">'+OPS[t.st]+'</span> '+STAGES[t.st]+' · '+esc(kp.num)+'</div><h2 class="disp" style="font-size:19px;margin-top:4px;font-weight:600">'+esc(t.title)+'</h2></div>';
+  if(t.hint)h+='<div class="qhint">'+esc(t.hint)+'</div>';
+  var stLabel={avail:['ok','Можно делать'],blocked:['warn','Ждёт предыдущих шагов'],und:['warn','Зависит от вопроса без ответа'],done:['ok','Сделано'],skip:['','Не требуется'],debt:['debt','Хвост'],off:['','Не нужно в этом КП']}[st];
+  h+='<div class="chips"><span class="chip '+stLabel[0]+'">'+stLabel[1]+'</span></div>';
+  if(st==='debt')h+='<div class="debts"><span style="font-size:14px">Нужно <b>'+esc(s.need||'к сроку')+'</b>, до <b class="mono">'+fmt(s.due)+'</b> ('+dl(daysLeft(s.due))+')'+(s.for?'. Отложено, когда делали «'+esc((an.tasks.filter(function(x){return x.id===s.for})[0]||{}).title||'')+'»':'')+'.</span></div>';
+  if(st==='skip'&&s.reason)h+='<div class="qhint">Причина: '+esc(s.reason)+'</div>';
+  if(st==='off'){var src=tById(t.src||t.id);h+='<div class="qhint">По ответам в этом КП действие не нужно'+(src&&clauses(src).length?': нужно, только если '+esc(condText(src.when)||condText(src.any)):'')+'.</div>'}
+  if(st==='und'){
+    var src2=t.custom?null:tById(t.src||t.id), qc=src2?clauses(src2).filter(function(c){return !(c[0] in kp.answers)&&qById(c[0])&&applic(kp.answers,qById(c[0]))==='yes'})[0]:null;
+    h+='<div class="qhint">'+esc(undText(kp,t)||'Зависит от вопроса')+'. Можно сделать и так, если уверены.</div>';
+    if(qc||t.shopsPending)h+='<button class="btn pri" data-act="openQ" data-q="'+esc(qc?qc[0]:'shops')+'">Ответить на вопрос</button>';
+  }
+  // что нужно до
+  if((t.after||[]).length){
+    var pre=[]; t.after.forEach(function(p){an.group(p).forEach(function(m){if(pre.indexOf(m)<0)pre.push(m)})});
+    pre=pre.filter(function(m){return an.st[m.id]!=='off'});
+    if(pre.length)h+='<div class="field"><span>Нужно до</span><div class="pre">'+pre.map(function(m){var ms=an.st[m.id];return '<button class="pre-i st-'+ms+'" data-act="openTask" data-kp="'+kp.id+'" data-t="'+m.id+'"><i></i>'+esc(m.title)+'<em>'+({done:'сделано',skip:'не требуется',debt:'хвост',avail:'можно',blocked:'ждёт',und:'вопрос'}[ms]||'')+'</em></button>'}).join('')+'</div></div>';
+  }
+  h+='<label class="field"><span>Исполнитель или кому передано</span><input type="text" id="tWho" data-kp="'+kp.id+'" data-t="'+t.id+'" value="'+esc(s.who||'')+'" placeholder="Например: ОГТ, Петров"></label>';
+  h+='<label class="field"><span>Комментарий</span><textarea id="tComment" data-kp="'+kp.id+'" data-t="'+t.id+'" placeholder="Номер служебки, что ответили…">'+esc(s.c||'')+'</textarea></label>';
+  if(s.c&&s.c.length>80)h+='<div class="btns"><button class="btn" data-act="copyComment">Скопировать комментарий</button></div>';
+  var mode=ui.sheet.mode;
+  if(mode==='tails'){
+    var um=an.unmet(t);
+    h+='<div class="debts"><h3>Не сделано то, что нужно до</h3><span style="font-size:13px">Можно сделать «'+esc(t.title)+'» сейчас. Недостающее станет хвостом с напоминанием или отметится как ненужное.</span>'+
+      um.map(function(m){var c=(ui.sheet.ch||{})[m.id]||'tail';return '<div class="tail-row"><span>'+esc(m.title)+(an.st[m.id]==='und'?' <em class="muted">(неясно, нужно ли)</em>':'')+'</span><span class="seg mini"><button data-act="tailCh" data-id="'+m.id+'" data-v="tail" aria-pressed="'+(c==='tail')+'">Хвост</button><button data-act="tailCh" data-id="'+m.id+'" data-v="skip" aria-pressed="'+(c==='skip')+'">Не нужно</button></span></div>'}).join('')+
+      '<label class="field"><span>Когда понадобятся</span><input type="text" id="tlNeed" value="'+esc(ui.sheet.need||'к началу работ по «'+t.title+'»')+'"></label>'+
+      '<label class="field"><span>Напомнить до</span><input type="date" id="tlDue" value="'+(ui.sheet.due||iso(today()+5*DAY))+'"></label>'+
+      '<label class="field"><span>Причина для «не нужно»</span><input type="text" id="tlReason" value="'+esc(ui.sheet.reason||'Типовые работы, уже есть')+'"></label>'+
+      '<div class="btns"><button class="btn okb" data-act="doneWithTails">Сделать и запомнить хвосты</button><button class="btn" data-act="sheetMode" data-v="">Отмена</button></div></div>';
+  } else if(mode==='skip'){
+    h+='<div class="debts"><h3>Не требуется</h3><label class="field"><span>Почему</span><input type="text" id="skReason" value="'+esc(ui.sheet.reason||'')+'" placeholder="Типовые работы, заключение уже получали"></label>'+
+      '<div class="btns"><button class="btn" data-act="skipOk">Отметить «не требуется»</button><button class="btn" data-act="sheetMode" data-v="">Отмена</button></div></div>';
+  } else if(mode==='defer'){
+    h+='<div class="debts"><h3>Отложить хвостом</h3><label class="field"><span>Когда понадобится</span><input type="text" id="dfNeed" placeholder="Например: до начала монтажа"></label>'+
+      '<label class="field"><span>Напомнить до</span><input type="date" id="dfDue" value="'+iso(today()+5*DAY)+'"></label><div class="btns"><button class="btn debtb" data-act="deferOk">Отложить</button><button class="btn" data-act="sheetMode" data-v="">Отмена</button></div></div>';
+  } else if(st==='done'||st==='skip'){
+    h+='<div class="btns"><button class="btn" data-act="reopen">Вернуть в работу</button></div>';
+  } else if(st!=='off'){
+    h+='<div class="btns"><button class="btn okb" data-act="done">'+(st==='debt'?'Сделано, хвост закрыт (+15 XP)':'Готово (+10 XP)')+'</button>'+
+      (st!=='debt'?'<button class="btn" data-act="sheetMode" data-v="skip">Не требуется</button><button class="btn debtb" data-act="sheetMode" data-v="defer">Хвостом</button>':'')+'</div>';
+    if(st==='blocked')h+='<p class="note">Ещё не сделано то, что нужно до. Если нажать «Готово», приложение предложит оставить это хвостами.</p>';
+  }
+  if(t.custom)h+='<div class="btns"><button class="btn dang" data-act="customDel">'+(ui.confirm==='customDel'?'Точно удалить?':'Удалить своё действие')+'</button></div>';
+  else h+='<button class="btn" data-act="edT" data-id="'+esc(t.src||t.id)+'">Изменить это действие в дереве</button>';
   return h;
 }
 
@@ -633,144 +878,13 @@ function viewNew(){
   '<button class="cta" type="submit"><span>Внести и начать разбор<small>Первый вопрос откроется сразу</small></span>'+I.arrow+'</button></form>';
 }
 
-function viewKp(){
-  var kp=kpById(ui.kpId); if(!kp){ui.view='home';return viewHome()}
-  var an=analyze(kp), n=daysLeft(kp.deadline);
-  var tasksTotal=an.tasks.length, tasksDone=an.tasks.filter(function(t){return stOf(kp,t).s==='done'}).length;
-  var h='<div class="top"><button class="iconbtn" data-act="home" aria-label="К списку">'+I.back+'</button><h1 class="mono" style="font-size:15px">'+esc(kp.num)+'</h1>'+
-    '<button class="iconbtn" data-act="editKp" aria-label="Карточка КП">'+I.gear+'</button></div><div class="stack">';
-  h+='<div class="hero"><div><div class="label">'+esc(kp.customer||'Заказчик не указан')+'</div><div class="subj">'+esc(kp.subject)+'</div></div>'+
-    routeHtml(an,true)+
-    '<div class="facts"><div class="fact"><b>'+an.pct+'%</b><span>готовность</span></div><div class="fact"><b>'+tasksDone+'/'+tasksTotal+'</b><span>задач</span></div>'+
-    '<div class="fact"><b style="color:'+(n!=null&&n<0?'var(--danger)':n!=null&&n<=2?'var(--warn)':'inherit')+'">'+fmt(kp.deadline)+'</b><span>'+(kp.finished?'ответ дан':esc(dl(n)||'срок'))+'</span></div></div>';
-  // CTA
-  var a=an.active;
-  if(!a){h+='<div class="cta done"><span>КП закрыто<small>Все этапы маршрута пройдены</small></span>'+I.flag+'</div>'}
-  else if(a.avail.length){h+='<button class="cta" data-act="startQ"><span>Ответить на вопросы<small>Операция '+OPS[a.i]+' · '+STAGES[a.i]+'</small></span>'+I.arrow+'</button>'}
-  else if(a.open.length){h+='<button class="cta" data-act="showTasks"><span>Открыто задач: '+a.open.length+'<small>Операция '+OPS[a.i]+' · '+STAGES[a.i]+'</small></span>'+I.arrow+'</button>'}
-  h+='<div class="toggle"><div class="t">Режим «Срочно»<small>'+(kp.urgent?'Шаги можно отложить в долг с датой':'Все шаги по порядку')+'</small></div><button class="sw" role="switch" aria-checked="'+!!kp.urgent+'" data-act="urgent" aria-label="Срочно"></button></div>';
-  h+='</div>';
-  if(an.debts.length){
-    h+='<div class="debts"><h3>Долги по этому КП: '+an.debts.length+'</h3>'+an.debts.map(function(t){return debtRow({kp:kp,t:t,due:stOf(kp,t).due})}).join('')+'</div>';
-  }
-  h+='<div class="seg" role="tablist">'+[['map','Карта'],['tasks','Задачи'],['answers','Ответы'],['text','Заявка']].map(function(x){return '<button data-act="tab" data-v="'+x[0]+'" aria-pressed="'+(ui.tab===x[0])+'">'+x[1]+'</button>'}).join('')+'</div>';
-  if(ui.tab==='map')h+=graphHtml(kp);
-  if(ui.tab==='tasks')h+=tasksHtml(kp,an);
-  if(ui.tab==='answers')h+=answersHtml(kp);
-  if(ui.tab==='text')h+=textHtml(kp);
-  h+='</div>';
-  return h;
-}
 
-function taskRow(kp,t){
-  var s=stOf(kp,t), cls=s.s==='done'?'done':s.s==='debt'?'debt':'';
-  var box=s.s==='done'?I.check:s.s==='debt'?I.clock:'';
-  var sub=s.s==='debt'?'Долг · погасить до '+fmt(s.due):(t.hint||'');
-  return '<button class="task '+cls+'" data-act="openTask" data-kp="'+kp.id+'" data-t="'+t.id+'"><span class="box">'+box+'</span><span class="tt"><b>'+esc(t.title)+'</b>'+
-    (sub?'<small>'+esc(sub.length>90?sub.slice(0,88)+'…':sub)+'</small>':'')+(s.who?'<small>Исполнитель: '+esc(s.who)+'</small>':'')+(s.c?'<small>'+I.chat+' '+esc(s.c.split('\n')[0].slice(0,60))+'</small>':'')+'</span></button>';
-}
-
-function tasksHtml(kp,an){
-  var h='';
-  an.stages.forEach(function(s){
-    var label='<span class="mono">'+OPS[s.i]+'</span>'+STAGES[s.i];
-    if(!s.unlocked){
-      h+='<div class="group locked"><div class="group-h">'+label+'</div><div class="locked-card">'+I.lock+'Откроется после операции '+OPS[s.i-1]+'. Задачи появятся после ответов на вопросы.</div></div>';
-      return;
-    }
-    var vis=s.tasks;
-    h+='<div class="group"><div class="group-h">'+label+(s.done?' <span class="chip ok">пройдена</span>':'')+'</div>';
-    if(s.avail.length)h+='<button class="locked-card" style="background:var(--accent-soft);border-color:transparent;color:var(--ink);text-align:left;width:100%" data-act="startQ">'+I.arrow+'Вопросов к ответу: '+s.avail.length+'. Ответы откроют задачи.</button>';
-    else if(s.pend.length&&!s.avail.length)h+='<div class="locked-card">'+I.lock+'Закройте задачи этапа, чтобы открылись вопросы по итогам.</div>';
-    vis.forEach(function(t){h+=taskRow(kp,t)});
-    h+='</div>';
-  });
-  if(an.active)h+='<button class="btn" data-act="newCustom">+ Своя задача в это КП</button>';
-  return h;
-}
-
-function optLabel(q,v){
-  if(q.kind==='shops')return (v||[]).map(function(i){return S.settings.shops[i]||('Цех #'+(i+1))}).join(', ')||'не выбрано';
-  if(q.kind==='multi')return (q.opts||[]).filter(function(o){return (v||[]).indexOf(o.v)>=0}).map(function(o){return o.l}).join(', ')||'не выбрано';
-  var o=(q.opts||[]).filter(function(o){return o.v===v})[0];return o?o.l:v;
-}
-function answersHtml(kp){
-  var qs=S.tree.questions.filter(function(q){return q.id in kp.answers});
-  if(!qs.length)return '<div class="empty">Ответов пока нет.</div>';
-  return '<div class="group">'+qs.map(function(q){
-    var conf=ui.confirm===q.id;
-    return '<div class="ans"><div class="tt"><span class="mono" style="color:var(--accent)">'+OPS[q.st]+'</span> '+esc(q.text)+'<b>'+esc(optLabel(q,kp.answers[q.id]))+'</b>'+
-      (conf?'<span class="note" style="color:var(--danger)">Сбросит этот и последующие ответы. Состояние задач сохранится.</span>':'')+'</div>'+
-      '<button class="btn'+(conf?' dang':'')+'" data-act="reAnswer" data-q="'+q.id+'">'+(conf?'Сбросить':'Изменить')+'</button></div>';
-  }).join('')+'</div>';
-}
 function textHtml(kp){
   var g=gostCheck(kp.text||'');
   return '<div class="qcard"><div class="label">Формулировка заявки</div><div style="white-space:pre-wrap">'+(kp.text?highlight(kp.text,g.marks):'<span class="muted">Текст не внесён.</span>')+'</div>'+
     (g.findings.length?'<div class="note">Замечаний: '+g.findings.length+'. Подробный разбор в вопросе «Проверим формулировку».</div>':'')+'</div>';
 }
 
-function viewQ(){
-  var kp=kpById(ui.kpId); if(!kp){ui.view='home';return viewHome()}
-  var an=analyze(kp), a=an.active;
-  if(!a||!a.avail.length){ui.view='kp';ui.tab='tasks';return viewKp()}
-  var q=a.avail[0];
-  var stageQs=questionsFor(kp.answers).filter(function(x){return x.st===a.i});
-  var prog=stageQs.map(function(x){return '<i class="'+(x.id in kp.answers?'on':'')+'"></i>'}).join('');
-  var h='<div class="top"><button class="iconbtn" data-act="backKp" aria-label="К КП">'+I.back+'</button><h1 style="font-size:14px"><span class="mono" style="color:var(--accent)">'+OPS[a.i]+'</span> '+STAGES[a.i]+'<br><span class="mono muted" style="font-size:12px;font-weight:500">'+esc(kp.num)+'</span></h1></div>';
-  h+='<div class="stack"><div class="qprog">'+prog+'</div><div class="qcard" id="qcard"><div class="label">Вопрос</div><h2>'+esc(q.text)+'</h2>'+(q.hint?'<div class="qhint">'+esc(q.hint)+'</div>':'');
-  if(q.kind==='gost'){
-    var txt=ui.qdraft!=null?ui.qdraft:(kp.text||'');
-    var g=gostCheck(txt);
-    h+='<textarea id="gostText" aria-label="Текст заявки">'+esc(txt)+'</textarea><div class="btns"><button class="btn" data-act="gostRun">Проверить</button></div>';
-    if(txt.trim()){
-      h+='<div class="label">Найдено: '+g.findings.length+'</div><div style="white-space:pre-wrap;font-size:14px">'+highlight(txt,g.marks)+'</div>';
-      g.findings.forEach(function(f){h+='<div class="find'+(f.soft?' info':'')+'"><b>«'+esc(f.term)+'»</b><span>'+esc(f.why)+'</span><span>Предлагается: '+esc(f.fix)+'</span>'+(f.ref?'<span class="ref">'+esc(f.ref)+'</span>':'')+'</div>'});
-      if(g.rewrite!==txt)h+='<div class="label">Предлагаемая редакция</div><div class="rewrite">'+esc(g.rewrite)+'</div>';
-      if(!g.findings.length)h+='<div class="find info"><b>Явных замечаний нет</b><span>Проверьте марки, допуски и количество вручную.</span></div>';
-    }
-  }
-  if(q.kind==='multi'||q.kind==='shops'){
-    var sel=Array.isArray(ui.qdraft)?ui.qdraft:[];
-    h+='<div class="opts">'+qOpts(q).map(function(o){var on=sel.indexOf(o.v)>=0;return '<button class="opt" data-act="multi" data-v="'+esc(o.v)+'" aria-pressed="'+on+'"><span class="k">'+(on?'✓':'')+'</span><span>'+esc(o.l)+(o.s?'<small>'+esc(o.s)+'</small>':'')+'</span></button>'}).join('')+'</div>'+
-      '<button class="cta" data-act="multiOk" data-q="'+esc(q.id)+'"'+(sel.length?'':' disabled style="opacity:.5"')+'><span>Готово<small>Выбрано: '+sel.length+'</small></span>'+I.arrow+'</button>';
-  } else {
-    h+='<div class="opts">'+q.opts.map(function(o,i){return '<button class="opt" data-act="answer" data-q="'+q.id+'" data-v="'+esc(o.v)+'"><span class="k">'+String.fromCharCode(1040+i)+'</span><span>'+esc(o.l)+(o.s?'<small>'+esc(o.s)+'</small>':'')+'</span></button>'}).join('')+'</div>';
-  }
-  h+='</div><p class="note">Ответ на вопрос: +5 XP. Ответ можно изменить на вкладке «Ответы».</p>'+
-   '<div class="btns"><button class="btn" data-act="edQ" data-id="'+esc(q.id)+'">Изменить этот вопрос</button><button class="btn" data-act="newQ" data-st="'+a.i+'">+ Добавить вопрос</button></div></div>';
-  return h;
-}
-
-/* ---------- sheets ---------- */
-function sheetTask(){
-  var kp=kpById(ui.sheet.kp); if(!kp)return '';
-  var an=analyze(kp), t=an.tasks.filter(function(x){return x.id===ui.sheet.t})[0]; if(!t)return '';
-  var s=stOf(kp,t), stg=an.stages[t.st];
-  var debtsOther=an.debts.filter(function(d){return d.id!==t.id&&d.st<=t.st}).length;
-  var h='<div class="grab"></div><div><div class="label"><span class="mono" style="color:var(--accent)">'+OPS[t.st]+'</span> '+STAGES[t.st]+' · '+esc(kp.num)+'</div><h2 class="disp" style="font-size:19px;margin-top:4px;font-weight:600">'+esc(t.title)+'</h2></div>';
-  if(t.hint)h+='<div class="qhint">'+esc(t.hint)+'</div>';
-  if(s.s==='debt')h+='<div class="debts"><h3>Это долг</h3><span style="font-size:14px">Погасить до <b class="mono">'+fmt(s.due)+'</b> ('+dl(daysLeft(s.due))+'). Пока долг висит, не закрыть '+esc(milestoneFor(kp,t.st))+'.</span></div>';
-  h+='<label class="field"><span>Исполнитель или кому передано</span><input type="text" id="tWho" data-kp="'+kp.id+'" data-t="'+t.id+'" value="'+esc(s.who||'')+'" placeholder="Например: ОГТ, Петров"></label>';
-  h+='<label class="field"><span>Комментарий</span><textarea id="tComment" data-kp="'+kp.id+'" data-t="'+t.id+'" placeholder="Кому передано, номер служебки, что ответили…">'+esc(s.c||'')+'</textarea></label>';
-  if(t.id==='rewrite'||(s.c&&s.c.length>80))h+='<div class="btns"><button class="btn" data-act="copyComment">Скопировать комментарий</button></div>';
-  if(!stg.unlocked)h+='<div class="locked-card">'+I.lock+'Этап ещё закрыт.</div>';
-  else if(s.s==='done')h+='<div class="btns"><button class="btn" data-act="reopen">Вернуть в работу</button></div>';
-  else{
-    var blocked=t.final&&debtsOther>0;
-    h+='<div class="btns"><button class="btn okb" data-act="done"'+(blocked?' disabled':'')+'>'+(s.s==='debt'?'Погасить долг (+15 XP)':'Готово (+10 XP)')+'</button></div>';
-    if(blocked)h+='<p class="note" style="color:var(--debt)">Сначала погасите долги: '+debtsOther+'. Иначе шаг уйдёт без ведомостей и заключений.</p>';
-    if(kp.urgent&&s.s!=='debt'&&!t.final){
-      var def=kp.deadline?iso(Math.max(today()+DAY,parseIso(kp.deadline)-DAY)):iso(today()+2*DAY);
-      h+='<div class="debts"><h3>Отложить в долг</h3><span style="font-size:13px">Шаг закроется условно и откроет следующий этап. Напоминание будет на главном экране.</span>'+
-        '<label class="field"><span>Погасить до</span><input type="date" id="tDue" value="'+def+'"></label><button class="btn debtb" data-act="debt">Отложить в долг</button></div>';
-    }
-    if(!kp.urgent&&!t.final)h+='<p class="note">Отложить шаг можно только в режиме «Срочно».</p>';
-  }
-  if(t.custom)h+='<div class="btns"><button class="btn dang" data-act="customDel">'+(ui.confirm==='customDel'?'Точно удалить задачу?':'Удалить свою задачу')+'</button></div>';
-  else if(t.src)h+='<button class="btn" data-act="edT" data-id="'+esc(t.src)+'">Изменить эту задачу в дереве</button>';
-  return h;
-}
 
 function sheetSettings(){
   return '<div class="grab"></div><h2 class="disp" style="font-size:19px;font-weight:600">Настройки</h2>'+
@@ -796,6 +910,7 @@ function sheetEdit(){
   (ui.confirm==='del'?'<button class="btn dang" data-act="delKp">Точно удалить?</button>':'<button class="btn dang" data-act="delKp">Удалить КП</button>')+'</div>';
 }
 
+
 /* ---------- редактор дерева ---------- */
 function stageChips(cur,from){
   var h='<div class="seg" role="group">';
@@ -820,7 +935,7 @@ function sheetEdQ(){
   h+='<label class="field"><span>Текст вопроса</span><input type="text" data-ed="text" value="'+esc(d.text)+'" placeholder="Например: Нужна ли упаковка по ГОСТ 23170?"></label>';
   h+='<label class="field"><span>Подсказка</span><input type="text" data-ed="hint" value="'+esc(d.hint||'')+'"></label>';
   h+='<div class="field"><span>Этап</span>'+stageChips(d.st)+'</div>';
-  h+='<div class="toggle"><div class="t">Задать после задач этапа<small>Вопрос по итогам: например «Службы дали замечания?»</small></div><button type="button" class="sw" role="switch" aria-checked="'+!!d.gate+'" data-act="edGate"></button></div>';
+  h+=afterPicker('Задавать после действий (необязательно)','Вопрос появится в списке «ждут ответа», когда эти действия сделаны. Ответить можно и раньше.');
   if(!d.kind||d.kind==='multi')h+='<div class="toggle"><div class="t">Можно выбрать несколько<small>Например, несколько видов работ сразу</small></div><button type="button" class="sw" role="switch" aria-checked="'+(d.kind==='multi')+'" data-act="edMulti"></button></div>';
   if(d.kind==='shops')h+='<p class="note">Варианты ответа берутся из списка цехов в настройках.</p>';
   else{
@@ -829,19 +944,20 @@ function sheetEdQ(){
     h+='<button type="button" class="btn" data-act="edOptAdd">+ Вариант</button></div>';
   }
   h+=condEditor('when','Показывать, только если (все условия)');
-  h+='<p class="note">Задачи, которые должен открыть ответ, добавьте в разделе «Задачи» с условием на этот вопрос. Сначала сохраните вопрос.</p>';
+  h+='<p class="note">Действия, которые открывает ответ, добавьте с условием на этот вопрос: удобнее всего через «Дерево» → «Вопросы» → «+ действие» у нужного ответа.</p>';
   h+=edButtons();
   return h;
 }
 function sheetEdT(){
-  var d=ui.ed.d, h='<div class="grab"></div><h2 class="disp" style="font-size:19px;font-weight:600">'+(ui.ed.isNew?'Новая задача':'Задача')+'</h2>';
+  var d=ui.ed.d, h='<div class="grab"></div><h2 class="disp" style="font-size:19px;font-weight:600">'+(ui.ed.isNew?'Новое действие':'Действие')+'</h2>';
   h+='<label class="field"><span>Название</span><input type="text" data-ed="title" value="'+esc(d.title)+'" placeholder="Например: Ведомость оснастки"></label>';
   h+='<label class="field"><span>Подсказка: кому, что приложить</span><input type="text" data-ed="hint" value="'+esc(d.hint||'')+'"></label>';
   h+='<div class="field"><span>Этап</span>'+stageChips(d.st)+'</div>';
-  if(!d.final)h+='<div class="toggle"><div class="t">Отдельно для каждого цеха<small>Создаётся по задаче на каждый выбранный цех</small></div><button type="button" class="sw" role="switch" aria-checked="'+!!d.perShop+'" data-act="edPerShop"></button></div>';
-  h+=condEditor('when','Появляется, если (все условия)');
+  if(!d.final)h+='<div class="toggle"><div class="t">Отдельно для каждого цеха<small>Создаётся по действию на каждый выбранный цех</small></div><button type="button" class="sw" role="switch" aria-checked="'+!!d.perShop+'" data-act="edPerShop"></button></div>';
+  h+=afterPicker('Нужно до: что должно быть сделано раньше','Линии на графе. Сделать действие можно и раньше: несделанное станет хвостом.');
+  h+=condEditor('when','Нужно, только если (вопросы, все условия)');
   h+=condEditor('any','…и хотя бы одно из (необязательно)');
-  h+='<p class="note">Без условий задача появляется в каждом КП.</p>';
+  h+='<p class="note">Без условий действие нужно в каждом КП.</p>';
   h+=edButtons();
   return h;
 }
@@ -853,27 +969,17 @@ function edButtons(){
 function treeItem(kind,x){
   var cond=condText(x.when), any=condText(x.any);
   var meta=[];
-  if(kind==='questions'){ if(x.gate)meta.push('после задач этапа'); if(x.kind==='multi')meta.push('несколько ответов');meta.push(x.kind==='shops'?'варианты: цеха':'вариантов: '+(x.opts||[]).length) }
+  if((x.after||[]).length)meta.push('после: '+x.after.map(function(p){var t=tById(p);return t?t.title:p}).join(', '));
+  if(kind==='questions'){ if(x.kind==='multi')meta.push('несколько ответов');meta.push(x.kind==='shops'?'варианты: цеха':'вариантов: '+(x.opts||[]).length) }
   else { if(x.perShop)meta.push('по каждому цеху'); if(x.final)meta.push('закрывает КП') }
   meta.push(cond||any?'если '+[cond,any&&('одно из: '+any)].filter(Boolean).join('; '):'всегда');
   return '<div class="ed-item"><button class="ed-main" data-act="'+(kind==='questions'?'edQ':'edT')+'" data-id="'+esc(x.id)+'"><b>'+esc(kind==='questions'?x.text:x.title)+'</b><small>'+esc(meta.join(' · '))+'</small></button>'+
     '<div class="ed-mv"><button class="iconbtn sm" data-act="mv" data-kind="'+kind+'" data-id="'+esc(x.id)+'" data-d="-1" aria-label="Выше">↑</button><button class="iconbtn sm" data-act="mv" data-kind="'+kind+'" data-id="'+esc(x.id)+'" data-d="1" aria-label="Ниже">↓</button></div></div>';
 }
-function refsTo(qid,v){
-  var out=[];
-  [['questions',S.tree.questions],['tasks',S.tree.tasks]].forEach(function(p){
-    p[1].forEach(function(x){
-      var inAll=(x.when||[]).some(function(c){return c[0]===qid&&c[1].indexOf(v)>=0});
-      var inAny=(x.any||[]).some(function(c){return c[0]===qid&&c[1].indexOf(v)>=0});
-      if(inAll||inAny)out.push({kind:p[0],x:x,any:inAny&&!inAll});
-    });
-  });
-  return out;
-}
 function mapChild(r){
   var isQ=r.kind==='questions', x=r.x;
   var others=(x.when||[]).length+(x.any||[]).length>1;
-  return '<button class="mchild '+(isQ?'mq':'mt')+'" data-act="'+(isQ?'edQ':'edT')+'" data-id="'+esc(x.id)+'"><span class="mk">'+(isQ?'Вопрос':'Задача')+' · '+OPS[x.st]+'</span><b>'+esc(isQ?x.text:x.title)+'</b>'+
+  return '<button class="mchild '+(isQ?'mq':'mt')+'" data-act="'+(isQ?'edQ':'edT')+'" data-id="'+esc(x.id)+'"><span class="mk">'+(isQ?'Вопрос':'Действие')+' · '+OPS[x.st]+'</span><b>'+esc(isQ?x.text:x.title)+'</b>'+
     (others?'<small>есть и другие условия'+(r.any?', хватит одного':'')+'</small>':'')+'</button>';
 }
 function viewMap(){
@@ -885,10 +991,10 @@ function viewMap(){
     if(always.length)h+='<div class="mnode"><div class="mhead"><span class="mk">Всегда в этом этапе</span></div><div class="mkids">'+always.map(function(t){return mapChild({kind:'tasks',x:t})}).join('')+'</div></div>';
     qs.forEach(function(q){
       var own=condText(q.when);
-      h+='<div class="mnode"><button class="mhead" data-act="edQ" data-id="'+esc(q.id)+'"><span class="mk">Вопрос'+(q.gate?' по итогам задач этапа':'')+(q.kind==='multi'||q.kind==='shops'?' · несколько ответов':'')+'</span><b>'+esc(q.text)+'</b>'+(own?'<small>задаётся, если '+esc(own)+'</small>':'')+'</button>';
+      h+='<div class="mnode"><button class="mhead" data-act="edQ" data-id="'+esc(q.id)+'"><span class="mk">Вопрос'+(q.kind==='multi'||q.kind==='shops'?' · несколько ответов':'')+'</span><b>'+esc(q.text)+'</b>'+(own?'<small>задаётся, если '+esc(own)+'</small>':'')+'</button>';
       qOpts(q).forEach(function(o){
         var refs=refsTo(q.id,o.v);
-        h+='<div class="mopt"><div class="mopt-l"><span>'+esc(o.l)+'</span><span class="madd"><button class="chip pick" data-act="newT" data-st="'+q.st+'" data-q="'+esc(q.id)+'" data-v="'+esc(o.v)+'">+ задача</button><button class="chip pick" data-act="newQ" data-st="'+q.st+'" data-q="'+esc(q.id)+'" data-v="'+esc(o.v)+'">+ вопрос</button></span></div>'+
+        h+='<div class="mopt"><div class="mopt-l"><span>'+esc(o.l)+'</span><span class="madd"><button class="chip pick" data-act="newT" data-st="'+q.st+'" data-q="'+esc(q.id)+'" data-v="'+esc(o.v)+'">+ действие</button><button class="chip pick" data-act="newQ" data-st="'+q.st+'" data-q="'+esc(q.id)+'" data-v="'+esc(o.v)+'">+ вопрос</button></span></div>'+
           (refs.length?'<div class="mkids">'+refs.map(mapChild).join('')+'</div>':'<div class="mnone">ничего не открывает</div>')+'</div>';
       });
       h+='</div>';
@@ -899,33 +1005,42 @@ function viewMap(){
 }
 function viewTree(){
   var mode=ui.treeMode||'graph';
-  var h='<div class="top"><button class="iconbtn" data-act="home" aria-label="Назад">'+I.back+'</button><h1 class="disp">Дерево вопросов</h1></div><div class="stack">';
-  h+='<div class="seg" role="group"><button data-act="treeMode" data-v="graph" aria-pressed="'+(mode==='graph')+'">Граф</button><button data-act="treeMode" data-v="map" aria-pressed="'+(mode==='map')+'">По ответам</button><button data-act="treeMode" data-v="list" aria-pressed="'+(mode==='list')+'">Списком</button></div>';
-  if(mode==='graph'){h+='<p class="note">Нажмите на узел, чтобы изменить вопрос или задачу.</p>'+graphHtml(null)+'</div>';return h}
+  var h='<div class="top"><button class="iconbtn" data-act="home" aria-label="Назад">'+I.back+'</button><h1 class="disp">Дерево</h1></div><div class="stack">';
+  h+='<div class="seg" role="group"><button data-act="treeMode" data-v="graph" aria-pressed="'+(mode==='graph')+'">Граф действий</button><button data-act="treeMode" data-v="map" aria-pressed="'+(mode==='map')+'">Вопросы</button><button data-act="treeMode" data-v="list" aria-pressed="'+(mode==='list')+'">Списком</button></div>';
+  if(mode==='graph'){h+='<p class="note">Линии показывают, что нужно сделать раньше. Жёлтым выделены действия, которые включает или выключает вопрос. Нажмите на узел, чтобы изменить его.</p><div class="btns"><button class="btn" data-act="newT" data-st="0">+ Действие</button></div>'+graphHtml(null)+'</div>';return h}
   if(mode==='map'){
-    h+='<p class="note">Под каждым вариантом ответа видно, какие задачи и вопросы он открывает. Нажмите на карточку, чтобы изменить её, или на «+ задача» у ответа, чтобы добавить новую сразу с этим условием.</p>'+viewMap()+'</div>';
+    h+='<p class="note">Под каждым вариантом ответа видно, какие действия и вопросы он включает. Нажмите на карточку, чтобы изменить её, или на «+ действие» у ответа, чтобы добавить новое сразу с этим условием.</p>'+viewMap()+'</div>';
     return h;
   }
-  h+='<p class="note">Изменения применяются сразу ко всем КП. Вопросы задаются по порядку сверху вниз внутри этапа. Ответ на вопрос открывает задачи, у которых он стоит в условии.</p>';
+  h+='<p class="note">Изменения применяются сразу ко всем КП. Вопросы задаются по порядку сверху вниз внутри этапа.</p>';
   for(var i=0;i<N;i++){
     var qs=S.tree.questions.filter(function(q){return q.st===i}), ts=S.tree.tasks.filter(function(t){return t.st===i});
     h+='<div class="group"><div class="group-h"><span class="mono">'+OPS[i]+'</span>'+STAGES[i]+'</div>';
     h+='<div class="label">Вопросы</div>'+qs.map(function(q){return treeItem('questions',q)}).join('')+'<button class="btn" data-act="newQ" data-st="'+i+'">+ Вопрос</button>';
-    h+='<div class="label" style="margin-top:6px">Задачи</div>'+ts.map(function(t){return treeItem('tasks',t)}).join('')+'<button class="btn" data-act="newT" data-st="'+i+'">+ Задача</button></div>';
+    h+='<div class="label" style="margin-top:6px">Действия</div>'+ts.map(function(t){return treeItem('tasks',t)}).join('')+'<button class="btn" data-act="newT" data-st="'+i+'">+ Действие</button></div>';
   }
   h+='<div class="btns"><button class="btn dang" data-act="treeReset">'+(ui.confirm==='treeReset'?'Точно вернуть стандартное дерево?':'Вернуть стандартное дерево')+'</button></div></div>';
   return h;
 }
 function sheetCustom(kp){
-  var an=analyze(kp), from=an.active?an.active.i:3, d=ui.ed.d;
-  return '<div class="grab"></div><h2 class="disp" style="font-size:19px;font-weight:600">Своя задача</h2>'+
+  var from=0, d=ui.ed.d;
+  return '<div class="grab"></div><h2 class="disp" style="font-size:19px;font-weight:600">Своё действие</h2>'+
   '<label class="field"><span>Что сделать</span><input type="text" data-ed="title" value="'+esc(d.title)+'" placeholder="Например: Запросить сертификат на материал"></label>'+
   '<label class="field"><span>Подсказка</span><input type="text" data-ed="hint" value="'+esc(d.hint||'')+'"></label>'+
   '<div class="field"><span>Этап</span>'+stageChips(d.st,from)+'</div>'+
-  '<div class="toggle"><div class="t">Добавить в дерево для всех КП<small>Иначе задача будет только в '+esc(kp.num)+'</small></div><button type="button" class="sw" role="switch" aria-checked="'+!!d.toTree+'" data-act="edToTree"></button></div>'+
+  '<div class="toggle"><div class="t">Добавить в дерево для всех КП<small>Иначе действие будет только в '+esc(kp.num)+'</small></div><button type="button" class="sw" role="switch" aria-checked="'+!!d.toTree+'" data-act="edToTree"></button></div>'+
   '<div class="btns"><button class="btn pri" data-act="customSave">Добавить</button><button class="btn" data-act="closeSheet">Отмена</button></div>';
 }
 function setPath(o,path,v){var p=path.split('.');for(var i=0;i<p.length-1;i++)o=o[p[i]];o[p[p.length-1]]=v}
+function afterPicker(label,note){
+  var d=ui.ed.d, sel=d.after||[], h='<div class="field"><span>'+label+'</span>';
+  for(var i=0;i<N;i++){
+    var ts=S.tree.tasks.filter(function(t){return t.st===i&&t.id!==d.id}); if(!ts.length)continue;
+    h+='<div class="aft-st mono">'+OPS[i]+' '+STAGES_SHORT[i]+'</div><div class="chips">'+ts.map(function(t){return '<button type="button" class="chip pick" data-act="edAfter" data-v="'+esc(t.id)+'" aria-pressed="'+(sel.indexOf(t.id)>=0)+'">'+esc(t.title)+'</button>'}).join('')+'</div>';
+  }
+  return h+'<p class="note">'+note+'</p></div>';
+}
+function stripAfter(tid){ S.tree.questions.concat(S.tree.tasks).forEach(function(x){ if(x.after)x.after=x.after.filter(function(p){return p!==tid}) }) }
 function stripRefs(qid){
   S.tree.questions.concat(S.tree.tasks).forEach(function(x){
     ['when','any'].forEach(function(k){ if(x[k])x[k]=x[k].filter(function(c){return c[0]!==qid}) });
@@ -937,135 +1052,110 @@ function edSave(){
   if(kind==='questions'){
     d.text=(d.text||'').trim(); if(!d.text){toast('Впишите текст вопроса');return false}
     if(d.kind!=='shops'){ d.opts=(d.opts||[]).filter(function(o){return o.l&&o.l.trim()}); if(d.opts.length<2){toast('Нужно минимум два варианта ответа');return false} }
-  } else { d.title=(d.title||'').trim(); if(!d.title){toast('Впишите название задачи');return false} }
+  } else { d.title=(d.title||'').trim(); if(!d.title){toast('Впишите название действия');return false} }
+  if(d.after&&!d.after.length)delete d.after;
   var arr=S.tree[kind];
   if(ui.ed.isNew)arr.push(d); else arr[arr.findIndex(function(x){return x.id===d.id})]=d;
   save(); toast('Дерево обновлено'); return true;
 }
 
-/* ---------- карта-граф: колонки этапов, узлы, связи ---------- */
-var G={colW:200,nodeW:160,nodeH:46,top:96,step:58,head:34};
-function clauses(x){return (x.when||[]).concat(x.any||[])}
+
+/* ---------- граф действий: колонки этапов, линии «что нужно до» ---------- */
+var G={colW:200,nodeW:162,nodeH:46,top:96,step:58,head:34};
+var AGG=['debt','avail','blocked','und','done','skip','off'];
 function graphModel(kp){
-  var a=kp?kp.answers:{}, an=kp?analyze(kp):null, built=kp?an.tasks:[];
-  var nodes=[], byId={};
+  var an=kp?analyze(kp):null, nodes=[], byId={};
   function add(n){nodes.push(n);byId[n.key]=n}
-  for(var i=0;i<N;i++)add({key:'E'+i,kind:'entry',st:i,label:i===0?'Заявка':OPS[i]+' '+STAGES_SHORT[i]});
-  S.tree.questions.forEach(function(q){
-    var st='neutral';
-    if(kp){
-      var ok=condOk(a,q), decided=clauses(q).every(function(c){return c[0] in a});
-      st=(q.id in a)?'done':(an.active&&an.active.avail.some(function(x){return x.id===q.id}))?'now':ok?'wait':decided?'off':'maybe';
-    }
-    add({key:'q:'+q.id,kind:'q',id:q.id,st:q.st,label:q.text,state:st,src:q});
-  });
+  add({key:'root',kind:'root',st:0,label:'Заявка',state:'done'});
   S.tree.tasks.forEach(function(t){
-    var st='neutral', inst=[];
+    var state='neutral', inst=[];
     if(kp){
-      inst=built.filter(function(b){return b.src===t.id});
-      var decided=clauses(t).every(function(c){return c[0] in a});
-      if(!inst.length)st=decided&&clauses(t).length?'off':'maybe';
-      else{
-        var ss=inst.map(function(b){return stOf(kp,b).s});
-        var unlocked=an.stages[t.st].unlocked;
-        st=ss.every(function(s){return s==='done'})?'done':ss.some(function(s){return s==='debt'})&&ss.every(function(s){return s!=='open'})?'debt':unlocked?'open':'wait';
-      }
+      inst=an.tasks.filter(function(b){return b.src===t.id});
+      var ss=inst.map(function(b){return an.st[b.id]});
+      if(ss.length&&ss.every(function(s){return s==='done'||s==='skip'}))state=ss.every(function(s){return s==='skip'})?'skip':'done';
+      else state=AGG.filter(function(s){return ss.indexOf(s)>=0})[0]||'off';
     }
-    add({key:'t:'+t.id,kind:'t',id:t.id,st:t.st,label:t.title+(t.perShop&&inst.length>1?' ×'+inst.length:''),state:st,src:t,inst:inst});
+    add({key:'t:'+t.id,id:t.id,kind:'t',st:t.st,label:t.title+(t.perShop&&inst.length>1?' ×'+inst.length:''),state:state,src:t,inst:inst,q:clauses(t).length>0});
   });
   if(kp)(kp.custom||[]).forEach(function(c){
-    var s=stOf(kp,c).s;
-    add({key:'c:'+c.id,kind:'t',custom:true,id:c.id,st:c.st,label:c.title,state:s==='done'?'done':s==='debt'?'debt':an.stages[c.st].unlocked?'open':'wait',src:c,inst:[c]});
+    add({key:'t:'+c.id,id:c.id,kind:'t',custom:true,st:c.st,label:c.title,state:an.st[c.id],src:c,inst:[c],q:false});
   });
   var edges=[];
-  for(var j=0;j<N-1;j++)edges.push({from:'E'+j,to:'E'+(j+1),on:kp?an.stages[j].done:true,spine:true});
   nodes.forEach(function(n){
-    if(n.kind==='entry')return;
-    var cl=n.custom?[]:clauses(n.src);
-    if(!cl.length){edges.push({from:'E'+n.st,to:n.key,on:kp?['done','now','open','debt'].indexOf(n.state)>=0:true});return}
-    cl.forEach(function(c){
-      if(!byId['q:'+c[0]])return;
-      var on=kp?match(a,c)&&n.state!=='off'&&n.state!=='maybe':true;
-      var q=qById(c[0]);
-      var lbl=kp&&on?qOpts(q).filter(function(o){return match(a,[c[0],[o.v]])&&c[1].indexOf(o.v)>=0}).map(function(o){return o.l}).join(', '):'';
-      edges.push({from:'q:'+c[0],to:n.key,on:on,label:lbl});
-    });
+    if(n.kind==='root')return;
+    var pre=(n.src.after||[]).filter(function(p){return byId['t:'+p]});
+    if(!pre.length){edges.push({from:'root',to:n.key});return}
+    pre.forEach(function(p){edges.push({from:'t:'+p,to:n.key})});
   });
-  // раскладка: колонка = этап; вопросы по порядку, задачи по средней высоте родителей
+  edges.forEach(function(e){
+    var p=byId[e.from], c=byId[e.to];
+    if(!kp){e.cls=c.q?'q':'plain';return}
+    if(c.state==='off'||p.state==='off'){e.cls='faint';return}
+    if(c.state==='und'){e.cls='q';return}
+    if(p.kind==='root'||p.state==='done'||p.state==='skip'){e.cls=p.state==='skip'?'on skip':'on';return}
+    if(p.state==='debt'){e.cls='debt';return}
+    e.cls='wait';
+  });
+  // раскладка: колонка = этап; внутри колонки по средней высоте предшественников
+  var root=byId.root; root.x=24; root.y=G.head+12;
   var colsH=[];
   for(var k=0;k<N;k++){
-    var e=byId['E'+k]; e.x=k*G.colW+24; e.y=G.head+12;
-    var qs=nodes.filter(function(n){return n.st===k&&n.kind==='q'});
-    var ts=nodes.filter(function(n){return n.st===k&&n.kind==='t'});
-    var y=G.top;
-    qs.forEach(function(n){n.x=k*G.colW+24;n.y=y;y+=G.step});
-    ts.forEach(function(n){
-      var ps=edges.filter(function(ed){return ed.to===n.key}).map(function(ed){return byId[ed.from]}).filter(function(p){return p&&p.y!=null});
-      n.bary=ps.length?ps.reduce(function(s,p){return s+p.y},0)/ps.length:0;
+    var col=nodes.filter(function(n){return n.st===k&&n.kind==='t'});
+    col.forEach(function(n,i){
+      var ps=edges.filter(function(ed){return ed.to===n.key}).map(function(ed){return byId[ed.from]}).filter(function(p){return p.y!=null&&p.st<k});
+      n.bary=ps.length?ps.reduce(function(s,p){return s+p.y},0)/ps.length:-1;
+      n.ord=i;
     });
-    ts.sort(function(p,q2){return p.bary-q2.bary});
-    if(qs.length)y+=10;
-    ts.forEach(function(n){n.x=k*G.colW+24;n.y=y;y+=G.step});
+    // внутри этапа: сначала те, чьи предшественники выше; зависимые внутри этапа — после своих
+    col.sort(function(a,b){return (a.bary-b.bary)||(a.ord-b.ord)});
+    var placed=[], y=k===0?G.top:G.head+12;
+    var guard=0;
+    while(col.length&&guard++<500){
+      var idx=col.findIndex(function(n){return edges.filter(function(ed){return ed.to===n.key}).every(function(ed){var p=byId[ed.from];return p.st!==k||placed.indexOf(p)>=0||p.kind==='root'})});
+      if(idx<0)idx=0;
+      var n=col.splice(idx,1)[0]; n.x=k*G.colW+24; n.y=y; y+=G.step; placed.push(n);
+    }
     colsH.push(y);
   }
   return {nodes:nodes,byId:byId,edges:edges,W:N*G.colW+10,H:Math.max.apply(null,colsH)+20};
 }
 function edgePath(p,c){
-  var x1=p.x+G.nodeW, y1=p.y+G.nodeH/2, y2=c.y+G.nodeH/2;
-  if(p.st===c.st&&p.kind!=='entry'){var bx=x1+18+Math.min(30,Math.abs(y2-y1)/8);return 'M'+x1+' '+y1+' C'+bx+' '+y1+' '+bx+' '+y2+' '+x1+' '+y2}
-  if(p.kind==='entry'&&p.st===c.st){var lx=p.x-8;return 'M'+(p.x+12)+' '+(p.y+G.nodeH)+' C'+lx+' '+(p.y+G.nodeH+20)+' '+lx+' '+y2+' '+c.x+' '+y2}
+  var x1=p.x+(p.kind==='root'?110:G.nodeW), y1=p.y+G.nodeH/2, y2=c.y+G.nodeH/2;
+  if(p.st===c.st&&p.kind!=='root'){var bx=x1+16+Math.min(26,Math.abs(y2-y1)/8);return 'M'+x1+' '+y1+' C'+bx+' '+y1+' '+bx+' '+y2+' '+(c.x+G.nodeW)+' '+y2}
+  if(p.kind==='root'&&c.st===0){var tx=p.x-12;return 'M'+p.x+' '+y1+' H'+tx+' V'+y2+' H'+c.x}
   var x2=c.x, dx=Math.max(30,(x2-x1)/2);
   return 'M'+x1+' '+y1+' C'+(x1+dx)+' '+y1+' '+(x2-dx)+' '+y2+' '+x2+' '+y2;
 }
 function graphHtml(kp){
-  var m=graphModel(kp), h='';
-  var bands='';
+  var m=graphModel(kp), h='', bands='';
   for(var i=0;i<N;i++)bands+='<div class="gcol'+(i%2?' alt':'')+'" style="left:'+(i*G.colW)+'px;width:'+G.colW+'px;height:'+m.H+'px"><span><b class="mono">'+OPS[i]+'</b> '+STAGES[i]+'</span></div>';
-  var off='', on='', bus={};
+  var order=['faint','plain','wait','q','debt','on','on skip'], paths={};
   m.edges.forEach(function(e){
-    var p=m.byId[e.from], c=m.byId[e.to]; if(!p||!c)return;
-    if(p.kind==='entry'&&c.kind!=='entry'&&p.st===c.st){(bus[p.st]=bus[p.st]||[]).push({c:c,on:e.on&&!!kp});return}
-    var d=edgePath(p,c);
-    if(e.on&&kp)on+='<path d="'+d+'" class="ge on'+(e.spine?' spine':'')+'"/>';
-    else off+='<path d="'+d+'" class="ge'+(kp?' off':'')+(e.spine?' spine':'')+'"/>';
+    var p=m.byId[e.from], c=m.byId[e.to];
+    (paths[e.cls]=paths[e.cls]||[]).push('<path d="'+edgePath(p,c)+'" class="ge e-'+e.cls.replace(' ',' e-')+'"/>');
   });
-  // вход этапа: общий ствол слева и отводы к узлам без условий
-  Object.keys(bus).forEach(function(k){
-    var p=m.byId['E'+k], items=bus[k], tx=p.x-10, y0=p.y+G.nodeH/2;
-    var maxY=Math.max.apply(null,items.map(function(b){return b.c.y+G.nodeH/2}));
-    var onY=items.filter(function(b){return b.on}).map(function(b){return b.c.y+G.nodeH/2});
-    var stub='M'+p.x+' '+y0+' H'+tx;
-    off+='<path d="'+stub+' V'+maxY+'" class="ge'+(kp?' off':'')+'"/>';
-    if(onY.length)on+='<path d="'+stub+' V'+Math.max.apply(null,onY)+'" class="ge on"/>';
-    items.forEach(function(b){var y=b.c.y+G.nodeH/2, d='M'+tx+' '+y+' H'+b.c.x; if(b.on)on+='<path d="'+d+'" class="ge on"/>';else off+='<path d="'+d+'" class="ge'+(kp?' off':'')+'"/>'});
-  });
+  var svg=order.map(function(k){return (paths[k]||[]).join('')}).join('');
   var nodesH=m.nodes.map(function(n){
-    var cls='gn '+(n.kind==='entry'?'gentry':n.kind==='q'?'gq':'gt')+' s-'+(n.state||'neutral');
-    if(kp&&n.kind==='entry')cls+=analyze(kp).stages[n.st].done?' s-done':analyze(kp).stages[n.st].unlocked?' s-now':' s-wait';
-    return '<button class="'+cls+'" style="left:'+n.x+'px;top:'+n.y+'px;width:'+(n.kind==='entry'?110:G.nodeW)+'px" data-act="gnode" data-key="'+esc(n.key)+'" title="'+esc(n.label)+'">'+
-      (n.kind==='q'?'<i>?</i>':n.kind==='t'?'<i class="sq"></i>':'')+'<span>'+esc(n.label)+'</span></button>';
+    if(n.kind==='root')return '<div class="gn groot" style="left:'+n.x+'px;top:'+n.y+'px;width:110px"><span>Заявка</span></div>';
+    return '<button class="gn gt s-'+(n.state||'neutral')+'" style="left:'+n.x+'px;top:'+n.y+'px;width:'+G.nodeW+'px" data-act="gnode" data-key="'+esc(n.key)+'" title="'+esc(n.label)+'">'+
+      '<i class="sq"></i><span>'+esc(n.label)+'</span>'+(n.q?'<b class="qmark" aria-label="Зависит от вопроса">?</b>':'')+'</button>';
   }).join('');
-  h+='<div class="gtools"><span class="note">'+(kp?'Сплошная линия: пройденный путь. Пунктир: возможные ветки.':'Линии показывают, какой ответ что открывает.')+'</span>'+
+  h+='<div class="gtools"><span class="note">'+(kp?'Сплошная: сделано. Жёлтый пунктир: ждёт ответа на вопрос. Серый пунктир: ещё впереди.':'Линия: что нужно сделать раньше. Жёлтая: действие включает вопрос.')+'</span>'+
     '<span class="btns" style="flex:none"><button class="iconbtn sm" data-act="gzoom" data-d="-1" aria-label="Мельче">−</button><button class="iconbtn sm" data-act="gzoom" data-d="1" aria-label="Крупнее">+</button>'+
-    '<button class="iconbtn sm" data-act="gfull" aria-label="'+(ui.gfull?'Свернуть':'На весь экран')+'">'+(ui.gfull?'×':'⤢')+'</button></span></div>';
+    '<button class="iconbtn sm" data-act="gfull" aria-label="На весь экран">⤢</button></span></div>';
   var z=ui.gzoom||0.8;
   h+='<div class="gwrap'+(ui.gfull?' gfull':'')+'" id="gwrap">'+(ui.gfull?'<div class="gclose"><button class="iconbtn" data-act="gzoom" data-d="-1" aria-label="Мельче">−</button><button class="iconbtn" data-act="gzoom" data-d="1" aria-label="Крупнее">+</button><button class="iconbtn" data-act="gfull" aria-label="Свернуть">×</button></div>':'')+
     '<div class="gcanvas" style="width:'+m.W+'px;height:'+m.H+'px;zoom:'+z+'">'+bands+
-    '<svg class="gsvg" width="'+m.W+'" height="'+m.H+'" viewBox="0 0 '+m.W+' '+m.H+'">'+off+on+'</svg>'+nodesH+'</div></div>';
-  if(kp)h+='<div class="glegend"><span><i class="lg s-done"></i>сделано</span><span><i class="lg s-now"></i>сейчас</span><span><i class="lg s-open"></i>открыто</span><span><i class="lg s-debt"></i>долг</span><span><i class="lg s-wait"></i>впереди</span><span><i class="lg s-off"></i>не нужно</span></div>';
+    '<svg class="gsvg" width="'+m.W+'" height="'+m.H+'" viewBox="0 0 '+m.W+' '+m.H+'">'+svg+'</svg>'+nodesH+'</div></div>';
+  if(kp)h+='<div class="glegend"><span><i class="lg s-done"></i>сделано</span><span><i class="lg s-avail"></i>можно делать</span><span><i class="lg s-blocked"></i>ждёт шагов</span><span><i class="lg s-und"></i>ждёт вопроса</span><span><i class="lg s-debt"></i>хвост</span><span><i class="lg s-skip"></i>не требуется</span><span><i class="lg s-off"></i>не нужно</span></div>';
   return h;
 }
 function graphTap(key){
-  var kp=ui.view==='kp'?kpById(ui.kpId):null, m=graphModel(kp), n=m.byId[key]; if(!n)return;
-  if(n.kind==='entry'){ if(kp){ui.tab='tasks'} return }
-  if(!kp){ ui.ed=n.kind==='q'?{kind:'questions',isNew:false,d:clone(n.src)}:{kind:'tasks',isNew:false,d:clone(n.src)}; ui.sheet={type:n.kind==='q'?'edQ':'edT'}; ui.confirm=null; return }
-  if(n.kind==='q'){
-    if(n.state==='now'){ui.view='q';ui.qdraft=null;ui.gfull=false;return}
-    if(n.state==='done'){ui.tab='answers';ui.gfull=false;return}
-    toast(n.state==='off'?'В этом КП вопрос не нужен':'Вопрос откроется позже'+(condText(n.src.when)?': если '+condText(n.src.when):''));return;
-  }
-  var inst=(n.inst||[]).filter(function(b){return stOf(kp,b).s!=='done'})[0]||(n.inst||[])[0];
-  if(!inst){toast(n.state==='off'?'В этом КП задача не нужна':'Задача появится после ответа: '+(condText(n.src.when)||condText(n.src.any)));return}
+  var kp=ui.view==='kp'?kpById(ui.kpId):null, m=graphModel(kp), n=m.byId[key]; if(!n||n.kind==='root')return;
+  if(!kp){ ui.ed={kind:'tasks',isNew:false,d:clone(n.src)}; ui.sheet={type:'edT'}; ui.confirm=null; return }
+  var an=analyze(kp);
+  var inst=(n.inst||[]).filter(function(b){return an.st[b.id]!=='done'&&an.st[b.id]!=='skip'})[0]||(n.inst||[])[0];
+  if(!inst)return;
   ui.sheet={type:'task',kp:kp.id,t:inst.id};
 }
 
@@ -1082,8 +1172,8 @@ function render(){
   var old=app.querySelector('.sheet'), top=old?old.scrollTop:0, same=old&&ui.sheet&&old.dataset.k===ui.sheet.type;
   app.innerHTML='<div class="wrap">'+h+'</div>'+sh;
   var nw=app.querySelector('.sheet'); if(nw){nw.dataset.k=ui.sheet.type; if(same)nw.scrollTop=top}
+  if(nw&&ui.sheet.scrollMode){ui.sheet.scrollMode=false;var dp=nw.querySelector('.debts:last-of-type');if(dp)nw.scrollTop=dp.offsetTop-20}
   var ng=document.getElementById('gwrap'); if(ng&&gs){ng.scrollLeft=gs[0];ng.scrollTop=gs[1]}
-  if(ui.pulse!=null)setTimeout(function(){ui.pulse=null},2500);
 }
 
 function copy(text){
@@ -1101,58 +1191,67 @@ app.addEventListener('click',function(e){
     case 'newKp':ui.view='new';break;
     case 'swNew':el.setAttribute('aria-checked',el.getAttribute('aria-checked')==='true'?'false':'true');return;
     case 'openKp':ui.kpId=el.dataset.id;ui.view='kp';ui.tab='map';ui.confirm=null;window.scrollTo(0,0);break;
-    case 'backKp':ui.view='kp';ui.qdraft=null;break;
+    case 'backKp':ui.view='kp';ui.qdraft=null;ui.qid=null;break;
     case 'tab':ui.tab=el.dataset.v;ui.confirm=null;break;
-    case 'startQ':ui.view='q';ui.qdraft=null;window.scrollTo(0,0);break;
-    case 'showTasks':ui.tab='tasks';render();var g=document.querySelector('.group:not(.locked) .task:not(.done):not(.debt)');if(g)g.scrollIntoView({behavior:'smooth',block:'center'});return;
-    case 'urgent':kp.urgent=!kp.urgent;save();toast(kp.urgent?'Срочный режим: шаги можно отложить в долг':'Обычный режим');break;
+    case 'startQ':ui.view='q';ui.qid=null;ui.qdraft=null;window.scrollTo(0,0);break;
+    case 'openQ':ui.view='q';ui.qid=el.dataset.q;ui.sheet=null;ui.qdraft=Array.isArray(kp.answers[el.dataset.q])?kp.answers[el.dataset.q].map(String):null;window.scrollTo(0,0);break;
+    case 'showTasks':ui.tab='tasks';render();var g=document.querySelector('.task.st-avail');if(g)g.scrollIntoView({behavior:'smooth',block:'center'});return;
+    case 'urgent':kp.urgent=!kp.urgent;save();break;
     case 'answer':
       prev=analyze(kp);
       var q=qById(el.dataset.q);
       kp.answers[q.id]=el.dataset.v;
       if(q.kind==='gost'){
-        var txt=ui.qdraft!=null?ui.qdraft:(kp.text||''); kp.text=txt; kp.gost=gostCheck(txt);
+        var txt=ui.qdraft!=null&&!Array.isArray(ui.qdraft)?ui.qdraft:(kp.text||''); kp.text=txt; kp.gost=gostCheck(txt);
         if(el.dataset.v==='rewrite'){kp.ts.rewrite=kp.ts.rewrite||{s:'open'};if(!kp.ts.rewrite.c)kp.ts.rewrite.c=letterFor(kp)}
       }
-      ui.qdraft=null;addXp(5,'Ответ принят.');
-      var an2=analyze(kp);
-      if(!an2.active||!an2.active.avail.length){ui.view='kp';ui.tab='tasks';var newT=an2.active?an2.active.open.length:0;if(newT)setTimeout(function(){toast('Вопросы этапа закончились. Открыто задач: '+newT)},1700)}
-      afterChange(kp,prev);window.scrollTo(0,0);return;
+      answered(kp,prev);return;
     case 'multi':
       var mv=el.dataset.v, sel=(Array.isArray(ui.qdraft)?ui.qdraft:[]).slice(), p=sel.indexOf(mv);
       if(p>=0)sel.splice(p,1);else sel.push(mv);ui.qdraft=sel;break;
     case 'multiOk':
       if(!Array.isArray(ui.qdraft)||!ui.qdraft.length)return;
       var mq=qById(el.dataset.q);
-      prev=analyze(kp);kp.answers[mq.id]=mq.kind==='shops'?ui.qdraft.map(Number).sort():ui.qdraft.slice();ui.qdraft=null;addXp(5,'Ответ принят.');
-      var an3=analyze(kp);if(!an3.active||!an3.active.avail.length){ui.view='kp';ui.tab='tasks'}
-      afterChange(kp,prev);return;
+      prev=analyze(kp);kp.answers[mq.id]=mq.kind==='shops'?ui.qdraft.map(Number).sort():ui.qdraft.slice();
+      answered(kp,prev);return;
     case 'gostRun':ui.qdraft=document.getElementById('gostText').value;break;
-    case 'reAnswer':
-      if(ui.confirm!==el.dataset.q){ui.confirm=el.dataset.q;break}
-      var qq=qById(el.dataset.q);
-      S.tree.questions.forEach(function(x,j,arr){ if(x.st>qq.st||(x.st===qq.st&&j>=arr.indexOf(qq)))delete kp.answers[x.id] });
-      kp.finished=false;ui.confirm=null;save();ui.view='q';ui.qdraft=null;toast('Ответ сброшен. Ответьте заново.');break;
-    case 'openTask':ui.kpId=el.dataset.kp;if(ui.view==='home'){ui.view='kp';ui.tab='tasks'}ui.sheet={type:'task',kp:el.dataset.kp,t:el.dataset.t};break;
+    case 'openTask':ui.kpId=el.dataset.kp;if(ui.view==='home'){ui.view='kp';ui.tab='tasks'}ui.sheet={type:'task',kp:el.dataset.kp,t:el.dataset.t};ui.confirm=null;break;
+    case 'sheetMode':ui.sheet.mode=el.dataset.v||null;ui.sheet.scrollMode=true;break;
+    case 'allDebts':ui.allDebts=!ui.allDebts;break;
+    case 'tailCh':syncTails();(ui.sheet.ch=ui.sheet.ch||{})[el.dataset.id]=el.dataset.v;break;
     case 'closeSheet':ui.sheet=null;ui.ed=null;ui.confirm=null;break;
     case 'done':
       kp=kpById(ui.sheet.kp);prev=analyze(kp);
-      var st=kp.ts[ui.sheet.t]=kp.ts[ui.sheet.t]||{s:'open'};var wasDebt=st.s==='debt';
-      st.s='done';st.at=Date.now();delete st.due;ui.sheet=null;
-      addXp(wasDebt?15:10,wasDebt?'Долг погашен.':'Задача закрыта.');afterChange(kp,prev);return;
-    case 'debt':
+      var tdone=prev.tasks.filter(function(x){return x.id===ui.sheet.t})[0];
+      if(prev.st[tdone.id]!=='debt'&&prev.unmet(tdone).length){ui.sheet.mode='tails';ui.sheet.scrollMode=true;break}
+      finishTask(kp,prev,tdone.id);return;
+    case 'doneWithTails':
+      kp=kpById(ui.sheet.kp);prev=analyze(kp);syncTails();
+      var tt=prev.tasks.filter(function(x){return x.id===ui.sheet.t})[0], tails=0, skips=0;
+      prev.unmet(tt).forEach(function(m){
+        var c=(ui.sheet.ch||{})[m.id]||'tail', rec=kp.ts[m.id]=kp.ts[m.id]||{s:'open'};
+        if(c==='skip'){rec.s='skip';rec.reason=ui.sheet.reason||'Не требуется';skips++}
+        else{rec.s='debt';rec.due=ui.sheet.due||iso(today()+5*DAY);rec.need=ui.sheet.need||('к началу работ по «'+tt.title+'»');rec.for=tt.id;tails++}
+      });
+      finishTask(kp,prev,tt.id,tails?'Хвостов: '+tails+', напомню.':'');return;
+    case 'skipOk':
       kp=kpById(ui.sheet.kp);prev=analyze(kp);
-      var st2=kp.ts[ui.sheet.t]=kp.ts[ui.sheet.t]||{s:'open'};
-      st2.s='debt';st2.due=document.getElementById('tDue').value||iso(today()+2*DAY);ui.sheet=null;
-      toast('Отложено в долг до '+fmt(st2.due));afterChange(kp,prev);return;
+      var sk=kp.ts[ui.sheet.t]=kp.ts[ui.sheet.t]||{s:'open'};
+      sk.s='skip';sk.reason=document.getElementById('skReason').value.trim()||'Не требуется';ui.sheet=null;
+      addXp(3,'Отмечено: не требуется.');afterChange(kp,prev);return;
+    case 'deferOk':
+      kp=kpById(ui.sheet.kp);prev=analyze(kp);
+      var df=kp.ts[ui.sheet.t]=kp.ts[ui.sheet.t]||{s:'open'};
+      df.s='debt';df.due=document.getElementById('dfDue').value||iso(today()+5*DAY);df.need=document.getElementById('dfNeed').value.trim()||'к сроку';ui.sheet=null;
+      toast('Хвост до '+fmt(df.due));afterChange(kp,prev);return;
     case 'reopen':
-      kp=kpById(ui.sheet.kp);var st3=kp.ts[ui.sheet.t];if(st3){st3.s='open'}kp.finished=false;save();break;
+      kp=kpById(ui.sheet.kp);prev=analyze(kp);var st3=kp.ts[ui.sheet.t];if(st3){st3.s='open';delete st3.reason}afterChange(kp,prev);return;
     case 'copyComment':copy(document.getElementById('tComment').value);return;
     case 'openTree':ui.sheet=null;ui.view='tree';ui.confirm=null;window.scrollTo(0,0);break;
     case 'newQ':
       var pq=el.dataset.q?qById(el.dataset.q):null;
       ui.ed={kind:'questions',isNew:true,d:{id:'q'+uid(),st:+el.dataset.st,text:'',hint:'',opts:[{v:'o'+uid(),l:'Да'},{v:'o'+uid(),l:'Нет'}],when:pq?[[pq.id,[el.dataset.v]]]:[]}};
-      if(pq&&pq.gate)ui.ed.d.gate=true;
+      if(pq&&pq.after)ui.ed.d.after=pq.after.slice();
       ui.sheet={type:'edQ'};ui.confirm=null;break;
     case 'newT':ui.ed={kind:'tasks',isNew:true,d:{id:'t'+uid(),st:+el.dataset.st,title:'',hint:'',when:el.dataset.q?[[el.dataset.q,[el.dataset.v]]]:[],any:[]}};ui.sheet={type:'edT'};ui.confirm=null;break;
     case 'treeMode':ui.treeMode=el.dataset.v;break;
@@ -1160,10 +1259,10 @@ app.addEventListener('click',function(e){
     case 'gzoom':ui.gzoom=Math.max(0.4,Math.min(1.4,Math.round(((ui.gzoom||0.8)+0.2*(+el.dataset.d))*10)/10));break;
     case 'gfull':ui.gfull=!ui.gfull;break;
     case 'edQ':var q0=qById(el.dataset.id);if(!q0)return;ui.ed={kind:'questions',isNew:false,d:clone(q0)};ui.sheet={type:'edQ'};ui.confirm=null;break;
-    case 'edT':var t0=S.tree.tasks.filter(function(x){return x.id===el.dataset.id})[0];if(!t0)return;ui.ed={kind:'tasks',isNew:false,d:clone(t0)};ui.sheet={type:'edT'};ui.confirm=null;break;
+    case 'edT':var t0=tById(el.dataset.id);if(!t0)return;ui.ed={kind:'tasks',isNew:false,d:clone(t0)};ui.sheet={type:'edT'};ui.confirm=null;break;
     case 'edSt':ui.ed.d.st=+el.dataset.v;break;
     case 'edMulti':if(ui.ed.d.kind==='multi')delete ui.ed.d.kind;else ui.ed.d.kind='multi';break;
-    case 'edGate':ui.ed.d.gate=!ui.ed.d.gate;break;
+    case 'edAfter':var af=ui.ed.d.after=ui.ed.d.after||[], ai=af.indexOf(el.dataset.v);if(ai>=0)af.splice(ai,1);else af.push(el.dataset.v);break;
     case 'edPerShop':ui.ed.d.perShop=!ui.ed.d.perShop;break;
     case 'edToTree':ui.ed.d.toTree=!ui.ed.d.toTree;break;
     case 'edOptAdd':(ui.ed.d.opts=ui.ed.d.opts||[]).push({v:'o'+uid(),l:''});break;
@@ -1179,7 +1278,7 @@ app.addEventListener('click',function(e){
     case 'edDel':
       if(ui.confirm!=='edDel'){ui.confirm='edDel';break}
       var arr=S.tree[ui.ed.kind];arr.splice(arr.findIndex(function(x){return x.id===ui.ed.d.id}),1);
-      if(ui.ed.kind==='questions')stripRefs(ui.ed.d.id);
+      if(ui.ed.kind==='questions')stripRefs(ui.ed.d.id);else stripAfter(ui.ed.d.id);
       save();ui.sheet=null;ui.ed=null;ui.confirm=null;toast('Удалено из дерева');break;
     case 'mv':
       var A=S.tree[el.dataset.kind], i0=A.findIndex(function(x){return x.id===el.dataset.id}), dir=+el.dataset.d, j=i0+dir;
@@ -1187,13 +1286,13 @@ app.addEventListener('click',function(e){
       if(j<0||j>=A.length)return;
       var tmp=A[i0];A[i0]=A[j];A[j]=tmp;save();break;
     case 'treeReset':if(ui.confirm!=='treeReset'){ui.confirm='treeReset';break}S.tree=clone(DEF_TREE);save();ui.confirm=null;toast('Стандартное дерево восстановлено');break;
-    case 'newCustom':var an4=analyze(kp);ui.ed={kind:'custom',d:{title:'',hint:'',st:an4.active?an4.active.i:3}};ui.sheet={type:'custom'};break;
+    case 'newCustom':var an4=analyze(kp);ui.ed={kind:'custom',d:{title:'',hint:'',st:an4.active?an4.active.i:0}};ui.sheet={type:'custom'};break;
     case 'customSave':
       var dd=ui.ed.d;dd.title=(dd.title||'').trim();if(!dd.title){toast('Впишите, что сделать');return}
       prev=analyze(kp);
       if(dd.toTree)S.tree.tasks.push({id:'t'+uid(),st:dd.st,title:dd.title,hint:dd.hint});
       else (kp.custom=kp.custom||[]).push({id:'c'+uid(),st:dd.st,title:dd.title,hint:dd.hint});
-      kp.finished=false;ui.sheet=null;ui.ed=null;toast('Задача добавлена');afterChange(kp,prev);return;
+      kp.finished=false;ui.sheet=null;ui.ed=null;toast('Действие добавлено');afterChange(kp,prev);return;
     case 'customDel':
       if(ui.confirm!=='customDel'){ui.confirm='customDel';break}
       kp=kpById(ui.sheet.kp);kp.custom=(kp.custom||[]).filter(function(x){return x.id!==ui.sheet.t});save();ui.sheet=null;ui.confirm=null;break;
@@ -1216,6 +1315,7 @@ app.addEventListener('click',function(e){
   render();
 });
 app.addEventListener('input',function(e){
+  if(e.target.id==='tlNeed'||e.target.id==='tlDue'||e.target.id==='tlReason')syncTails();
   if(e.target.id==='tComment'){var kp=kpById(e.target.dataset.kp);var st=kp.ts[e.target.dataset.t]=kp.ts[e.target.dataset.t]||{s:'open'};st.c=e.target.value;save()}
   if(e.target.id==='gostText'){ui.qdraft=e.target.value}
   if(e.target.id==='tWho'){var k2=kpById(e.target.dataset.kp);var s2=k2.ts[e.target.dataset.t]=k2.ts[e.target.dataset.t]||{s:'open'};s2.who=e.target.value;save()}
@@ -1231,9 +1331,28 @@ app.addEventListener('submit',function(e){
   var kp={id:uid(),num:g('f-num'),customer:g('f-cust'),subject:g('f-subj'),text:document.getElementById('f-text').value,received:g('f-rec'),deadline:g('f-dl'),
     urgent:document.getElementById('f-urg').getAttribute('aria-checked')==='true',created:Date.now(),answers:{},ts:{},finished:false};
   if(!/кп/i.test(kp.num))kp.num='КП № '+kp.num;
-  S.kps.unshift(kp);save();ui.kpId=kp.id;ui.view='q';ui.qdraft=null;addXp(5,'КП внесено.');render();window.scrollTo(0,0);
+  S.kps.unshift(kp);save();ui.kpId=kp.id;ui.view='q';ui.qid=null;ui.qdraft=null;addXp(5,'КП внесено.');render();window.scrollTo(0,0);
 });
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&ui.sheet){ui.sheet=null;render()}});
+
+
+function syncTails(){
+  if(!ui.sheet)return;
+  var n=document.getElementById('tlNeed'), d=document.getElementById('tlDue'), r=document.getElementById('tlReason');
+  if(n)ui.sheet.need=n.value.trim(); if(d)ui.sheet.due=d.value; if(r)ui.sheet.reason=r.value.trim();
+}
+function finishTask(kp,prev,id,extra){
+  var st=kp.ts[id]=kp.ts[id]||{s:'open'}, wasDebt=st.s==='debt';
+  st.s='done';st.at=Date.now();delete st.due;delete st.need;ui.sheet=null;
+  addXp(wasDebt?15:10,(wasDebt?'Хвост закрыт.':'Готово.')+(extra?' '+extra:''));afterChange(kp,prev);
+}
+function answered(kp,prev){
+  ui.qdraft=null;addXp(5,'Ответ принят.');
+  var was=ui.qid; ui.qid=null;
+  var an=analyze(kp);
+  if(was||!an.ready.length){ui.view='kp';ui.tab=was?'questions':'map'}
+  afterChange(kp,prev);window.scrollTo(0,0);
+}
 
 function start(){render()}
 if(window.claude&&window.claude.hot&&window.claude.hot.ready)window.claude.hot.ready(start);else start();
