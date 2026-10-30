@@ -1,0 +1,1056 @@
+<title>Хаб КП</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: одна колонка до 560px, как маршрутная карта: шапка с уровнем, карточки КП, лист задачи снизу */
+:root{
+  --bg:#ECEFF3; --surface:#FFFFFF; --surface-2:#F5F7F9; --ink:#15202B; --muted:#5A6775; --line:#D3DAE2;
+  --accent:#D9690B; --accent-soft:#FBE8D6; --accent-ink:#FFFFFF;
+  --ok:#1B8656; --ok-soft:#DDF2E7; --warn:#B07800; --warn-soft:#FAEFD2;
+  --danger:#C4352B; --danger-soft:#F9DEDB; --debt:#6E48C7; --debt-soft:#ECE5FA;
+  --shadow:0 1px 2px rgba(21,32,43,.06),0 6px 18px rgba(21,32,43,.07);
+  --f-display:"Unbounded","Onest",system-ui,sans-serif;
+  --f-body:"Onest",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E141A; --surface:#17202A; --surface-2:#1D2732; --ink:#E5EBF1; --muted:#93A0AD; --line:#2A3643;
+  --accent:#F39234; --accent-soft:#3A2A1A; --accent-ink:#1A1007;
+  --ok:#3DBD84; --ok-soft:#163327; --warn:#E2B13F; --warn-soft:#352C14;
+  --danger:#EF6155; --danger-soft:#3A1D1B; --debt:#A88CF2; --debt-soft:#2A2340;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E141A; --surface:#17202A; --surface-2:#1D2732; --ink:#E5EBF1; --muted:#93A0AD; --line:#2A3643;
+  --accent:#F39234; --accent-soft:#3A2A1A; --accent-ink:#1A1007;
+  --ok:#3DBD84; --ok-soft:#163327; --warn:#E2B13F; --warn-soft:#352C14;
+  --danger:#EF6155; --danger-soft:#3A1D1B; --debt:#A88CF2; --debt-soft:#2A2340;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25); color-scheme:dark}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 var(--f-body);-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 120px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+h1,h2,h3{margin:0;text-wrap:balance}
+.disp{font-family:var(--f-display);font-weight:700;letter-spacing:-.01em}
+.label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;align-items:center;gap:10px;padding-block:10px}
+.top h1{font-size:18px;flex:1;min-width:0}
+.iconbtn{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;flex:none}
+.iconbtn svg{width:20px;height:20px}
+
+/* level card */
+.level{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;background:var(--surface);border-radius:var(--r);padding:14px;box-shadow:var(--shadow)}
+.lvl-badge{width:52px;height:52px;border-radius:14px;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-family:var(--f-display);font-size:20px}
+.bar{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;border:1px solid var(--line)}
+.bar > i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .5s}
+.level .row{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:6px}
+
+/* debt banner */
+.debts{border-radius:var(--r);background:var(--debt-soft);border:1px solid color-mix(in srgb,var(--debt) 35%,transparent);padding:12px 14px;display:grid;gap:8px}
+.debts h3{font-size:14px;color:var(--debt);display:flex;align-items:center;gap:8px}
+.debt-row{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border-radius:10px;padding:10px;border:0;text-align:left;width:100%}
+.debt-row .t{flex:1;min-width:0;font-size:14px}
+.debt-row .t small{display:block;color:var(--muted);font-size:12px}
+
+.stack{display:grid;gap:12px}
+.seg{display:flex;gap:6px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:4px}
+.seg button{flex:1;border:0;background:transparent;padding:8px 6px;border-radius:9px;font-weight:600;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+
+/* KP card */
+.kp{background:var(--surface);border-radius:var(--r);padding:14px;box-shadow:var(--shadow);border:0;text-align:left;width:100%;display:grid;gap:10px}
+.kp-head{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.kp-num{font-family:var(--f-mono);font-weight:700;font-size:13px}
+.kp-subj{font-weight:600;font-size:16px;line-height:1.3}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:12px;font-weight:600;border-radius:99px;padding:3px 9px;background:var(--surface-2);color:var(--muted);border:1px solid var(--line);white-space:nowrap}
+.chip.urgent{background:var(--danger-soft);color:var(--danger);border-color:transparent}
+.chip.debt{background:var(--debt-soft);color:var(--debt);border-color:transparent}
+.chip.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.chip.warn{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.chip.ex{border-style:dashed}
+
+/* route (stage map) */
+.route{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;position:relative}
+.op{display:grid;justify-items:center;gap:4px;position:relative;text-align:center;padding:0 2px;background:none;border:0}
+.op::before{content:"";position:absolute;top:15px;left:-50%;width:100%;height:2px;background:var(--line);z-index:0}
+.op:first-child::before{display:none}
+.op.done::before,.op.active::before{background:var(--accent)}
+.node{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-mono);font-size:10px;font-weight:700;background:var(--surface-2);border:2px solid var(--line);color:var(--muted);position:relative;z-index:1}
+.op.active .node{border-color:var(--accent);color:var(--accent);background:var(--surface)}
+.op.done .node{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.op .nm{font-size:11px;color:var(--muted);line-height:1.2}
+.op.active .nm{color:var(--ink);font-weight:600}
+.op .dbt{position:absolute;top:-4px;right:calc(50% - 22px);z-index:2;min-width:16px;height:16px;border-radius:8px;background:var(--debt);color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center;padding:0 4px}
+.route.big .node{width:40px;height:40px;font-size:11px}
+.route.big .op::before{top:19px}
+.route.big .op .nm{font-size:12px}
+.pulse .node{animation:pulse 1.2s ease-out 2}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 60%,transparent)}100%{box-shadow:0 0 0 14px transparent}}
+
+/* hero on KP screen */
+.hero{background:var(--surface);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);display:grid;gap:14px}
+.hero .subj{font-family:var(--f-display);font-size:19px;line-height:1.25;font-weight:600}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.fact{background:var(--surface-2);border-radius:10px;padding:8px 10px;min-width:0}
+.fact b{display:block;font-family:var(--f-mono);font-size:15px}
+.fact span{font-size:11px;color:var(--muted)}
+.cta{width:100%;border:0;border-radius:14px;padding:16px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left}
+.cta small{display:block;font-weight:500;font-size:12px;opacity:.85}
+.cta.ghost{background:var(--surface-2);color:var(--ink);border:1px solid var(--line)}
+.cta.done{background:var(--ok);color:#fff}
+.cta svg{width:22px;height:22px;flex:none}
+.toggle{display:flex;align-items:center;gap:10px;justify-content:space-between;background:var(--surface-2);border-radius:12px;padding:10px 12px;border:1px solid var(--line)}
+.toggle .t{font-size:14px;font-weight:600}
+.toggle .t small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.sw{width:48px;height:28px;border-radius:99px;background:var(--line);border:0;position:relative;flex:none;transition:background .2s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--surface);transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.sw[aria-checked="true"]{background:var(--danger)}
+.sw[aria-checked="true"]::after{transform:translateX(20px)}
+
+/* tasks */
+.group{display:grid;gap:8px}
+.group-h{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;padding-top:6px}
+.group-h .mono{color:var(--accent)}
+.group.locked .group-h{color:var(--muted)}
+.task{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border-radius:12px;padding:12px;border:1px solid var(--line);text-align:left;width:100%;animation:rise .35s ease both}
+.task .tt{flex:1;min-width:0}
+.task .tt b{display:block;font-weight:600;font-size:14.5px;line-height:1.3}
+.task .tt small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
+.box{width:24px;height:24px;border-radius:7px;border:2px solid var(--line);flex:none;display:grid;place-items:center;margin-top:1px}
+.task.done{opacity:.7}
+.task.done .box{background:var(--ok);border-color:var(--ok);color:#fff}
+.task.done b{text-decoration:line-through;text-decoration-color:var(--muted)}
+.task.debt{border-color:color-mix(in srgb,var(--debt) 45%,transparent);background:var(--debt-soft)}
+.task.debt .box{border-color:var(--debt);color:var(--debt)}
+.box svg{width:14px;height:14px}
+.locked-card{border:1px dashed var(--line);border-radius:12px;padding:12px;color:var(--muted);font-size:13px;display:flex;gap:10px;align-items:center}
+.locked-card svg{width:18px;height:18px;flex:none}
+@keyframes rise{from{transform:translateY(6px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* question */
+.qcard{background:var(--surface);border-radius:18px;padding:18px;box-shadow:var(--shadow);display:grid;gap:14px;animation:rise .3s ease both}
+.qcard h2{font-family:var(--f-display);font-size:20px;line-height:1.25;font-weight:600}
+.qhint{font-size:13.5px;color:var(--muted);background:var(--surface-2);border-radius:10px;padding:10px 12px}
+.opts{display:grid;gap:8px}
+.opt{border:1.5px solid var(--line);background:var(--surface);border-radius:12px;padding:13px 14px;text-align:left;font-weight:600;font-size:15px;display:flex;gap:10px;align-items:center}
+.opt small{display:block;font-weight:400;color:var(--muted);font-size:12.5px}
+.opt:active{border-color:var(--accent);background:var(--accent-soft)}
+.opt .k{font-family:var(--f-mono);font-size:12px;color:var(--accent);width:18px;flex:none}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.qprog{display:flex;gap:4px}
+.qprog i{flex:1;height:4px;border-radius:2px;background:var(--line)}
+.qprog i.on{background:var(--accent)}
+
+/* gost */
+textarea,input[type=text],input[type=date]{width:100%;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:10px 12px;font-size:15px}
+textarea{min-height:96px;resize:vertical}
+.find{border-left:3px solid var(--warn);background:var(--surface-2);border-radius:0 10px 10px 0;padding:10px 12px;display:grid;gap:3px;font-size:13.5px}
+.find.info{border-color:var(--muted)}
+.find b{font-size:14px}
+.find .ref{font-family:var(--f-mono);font-size:11.5px;color:var(--muted)}
+mark{background:var(--warn-soft);color:var(--ink);border-bottom:2px solid var(--warn);padding:0 1px;border-radius:2px}
+.rewrite{background:var(--ok-soft);border-radius:10px;padding:10px 12px;font-size:14px;white-space:pre-wrap}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:11px;padding:10px 14px;font-weight:600;font-size:14px}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.okb{background:var(--ok);color:#fff;border-color:var(--ok)}
+.btn.debtb{background:var(--debt-soft);color:var(--debt);border-color:transparent}
+.btn.dang{color:var(--danger)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btns .btn{flex:1 1 auto}
+
+/* answers */
+.ans{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start}
+.ans .tt{flex:1;min-width:0;font-size:13px;color:var(--muted)}
+.ans .tt b{display:block;color:var(--ink);font-size:14px;font-weight:600}
+
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(10,15,20,.45);z-index:20;animation:fade .2s}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--surface);border-radius:20px 20px 0 0;max-height:88vh;overflow:auto;animation:up .25s ease;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+.sheet-in{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px 4px;display:grid;gap:14px}
+.grab{width:40px;height:4px;border-radius:2px;background:var(--line);margin:0 auto}
+@keyframes up{from{transform:translateY(30%);opacity:.4}to{transform:none;opacity:1}}
+@keyframes fade{from{opacity:0}}
+.field{display:grid;gap:6px}
+.field > span{font-size:13px;font-weight:600}
+
+/* fab, toast */
+.fab{position:fixed;right:max(16px,calc(env(safe-area-inset-right,0px) + 16px));bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:6;border:0;border-radius:16px;background:var(--ink);color:var(--bg);padding:14px 18px;font-weight:700;font-size:15px;display:flex;gap:8px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.fab svg{width:20px;height:20px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:var(--bg);padding:12px 16px;border-radius:12px;font-size:14px;font-weight:600;max-width:min(92vw,480px);box-shadow:0 8px 24px rgba(0,0,0,.3);animation:rise .25s}
+.toast .xp{font-family:var(--f-mono);color:var(--accent)}
+.empty{text-align:center;color:var(--muted);padding:30px 10px;font-size:14px}
+.note{font-size:12.5px;color:var(--muted);margin:0}
+select{width:100%;min-width:0;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:9px 10px;font-size:14px}
+.iconbtn.sm{width:34px;height:34px;border-radius:10px;font-size:16px;font-weight:700}
+.cond{display:grid;gap:8px;background:var(--surface-2);border-radius:12px;padding:10px;border:1px solid var(--line)}
+.cond-h{display:flex;gap:8px;align-items:center}
+.cond-h > :first-child{flex:1;min-width:0}
+.chip.pick{cursor:pointer;background:var(--surface)}
+.chip.pick[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.ed-item{display:flex;gap:8px;align-items:stretch;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:6px 6px 6px 0}
+.ed-main{flex:1;min-width:0;text-align:left;background:none;border:0;padding:6px 12px;display:grid;gap:2px}
+.ed-main b{font-weight:600;font-size:14px;line-height:1.3}
+.ed-main small{color:var(--muted);font-size:12px;line-height:1.35}
+.ed-mv{display:flex;flex-direction:column;gap:4px}
+.seg .mono{font-size:11px;color:var(--accent)}
+.mnode{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:10px}
+.mhead{display:grid;gap:3px;text-align:left;background:none;border:0;padding:0}
+.mhead b{font-size:15px;font-weight:600;line-height:1.3}
+.mhead small,.mchild small{font-size:12px;color:var(--muted)}
+.mk{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;color:var(--muted)}
+.mopt{display:grid;gap:6px;padding-left:12px;border-left:2px solid var(--accent);margin-left:4px}
+.mopt-l{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;justify-content:space-between;font-weight:600;font-size:14px}
+.mopt-l > span:first-child{min-width:0}
+.madd{display:flex;gap:6px}
+.madd .chip{font-size:11px;padding:2px 8px}
+.mkids{display:grid;gap:6px;padding-left:14px;position:relative}
+.mkids::before{content:"";position:absolute;left:4px;top:0;bottom:12px;width:1.5px;background:var(--line)}
+.mchild{position:relative;text-align:left;border:1px solid var(--line);border-radius:10px;padding:7px 10px;display:grid;gap:2px;background:var(--surface-2)}
+.mchild::before{content:"";position:absolute;left:-10px;top:50%;width:9px;height:1.5px;background:var(--line)}
+.mchild b{font-size:13.5px;font-weight:600;line-height:1.3}
+.mchild.mq{background:var(--accent-soft);border-color:transparent}
+.mchild.mq .mk{color:var(--accent)}
+.mnone{font-size:12px;color:var(--muted);padding-left:2px}
+</style>
+
+<div id="app"></div>
+
+<script>
+(function(){
+'use strict';
+var LS='kp-hub-v1';
+var DAY=86400000;
+var OPS=['005','010','015','020','025','030'];
+var STAGES=['Разбор заявки','Заключения служб','Трудоёмкость и материалы','Цена и КП','Договор или гарантийка','Запуск работ'];
+var STAGES_SHORT=['Разбор','Службы','Цеха','КП','Договор','Запуск'];
+var N=OPS.length;
+var TITLES=['Стажёр','Исполнитель','Инженер по КП','Ведущий инженер','Мастер КП','Главный по КП'];
+
+/* ---------- icons ---------- */
+var I={
+  tree:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-4h12v4"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>',
+  lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>',
+  arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  flag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>',
+  chat:'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 5h16v11H9l-5 4z"/></svg>'
+};
+
+/* ---------- дерево вопросов и задач (редактируется в приложении) ---------- */
+var CAN=['yes','partial'], WORKS=['repair','install','cable','shield'];
+var DEF_SHOPS=['ОСТ — спецтехника','ЭМР-1 — электромонтаж','ЭМР-2 — электромонтаж','Щит — двигатели и щиты','Каб — кабель и щиты собств. пр-ва','Тр — приём груза и транспорт'];
+var TREE_VER=2;
+function O(v,l,s){var o={v:v,l:l};if(s)o.s=s;return o}
+var DEF_TREE={questions:[
+ {id:'goz',st:0,text:'Заказ по ГОЗ?',hint:'По ГОЗ все закупки с приёмкой ВП, а на письмах заказчика обязательны 2 подписи.',opts:[O('yes','Да, ГОЗ'),O('no','Нет')]},
+ {id:'type',st:0,kind:'multi',text:'Какие работы в заявке?',hint:'Можно выбрать несколько. От этого зависит, каким службам рассылать.',opts:[O('repair','Ремонт оборудования'),O('install','Монтаж и подключение оборудования'),O('cable','Прокладка кабеля'),O('shield','Щиты, двигатели'),O('spec','Спецтехника'),O('supply','Поставка оборудования')]},
+ {id:'docs',st:0,text:'Документация на изделие есть?',hint:'Ремонтная документация, чертежи помещений, схемы, ТУ.',opts:[O('full','Да, полный комплект'),O('partial','Частично'),O('none','Нет')]},
+ {id:'dismount',st:0,when:[['type',['repair']]],text:'Оборудование нужно демонтировать и доставить к нам?',opts:[O('yes','Да, демонтаж и доставка'),O('onsite','Нет, ремонт на месте')]},
+ {id:'weight',st:0,when:[['dismount',['yes']]],text:'Есть узлы тяжелее 15 кг?',hint:'Оборудование тяжелее 15 кг мы не поднимаем.',opts:[O('yes','Да'),O('no','Нет'),O('unknown','Неизвестно')]},
+ {id:'cond',st:0,kind:'multi',text:'Есть особые условия заказчика?',opts:[O('cable_date','Требование по году выпуска кабеля','Например, ГОЗ 2020: кабель 2019 года со склада нельзя'),O('other','Другие особые условия'),O('none','Нет')]},
+ {id:'gost',st:0,kind:'gost',text:'Проверим формулировку заявки',hint:'Вставьте текст заявки. Приложение подсветит ненормативные слова и предложит замену. Это подсказка, а не официальный нормоконтроль.',opts:[O('ok','Формулировка корректна'),O('rewrite','Предложить заказчику переформулировку','Письмо с замечаниями попадёт в комментарий задачи'),O('internal','Переформулирую сам для служб')]},
+ {id:'buy',st:0,text:'Нужна закупка оборудования, кабеля или материалов?',opts:[O('yes','Да'),O('no','Нет, всё есть'),O('unknown','Пока неясно')]},
+
+ {id:'ogt_res',st:1,gate:true,kind:'multi',text:'Что ответил ОГТ?',opts:[O('ok','Технология есть, замечаний нет'),O('no_tech','Нет технологии'),O('no_docs','Нет ремонтной документации'),O('other','Другие замечания')]},
+ {id:'ogk_res',st:1,gate:true,kind:'multi',when:[['type',WORKS]],text:'Что ответил ОГК?',opts:[O('ok','Замечаний нет'),O('no_draw','Нет чертежей помещений, неясно куда ставить'),O('no_conn','Неясно подключение, крепёж, наконечники'),O('no_route','Неясна трасса кабеля'),O('permit','Нужна карта разрешения')]},
+ {id:'ost_res',st:1,gate:true,when:[['type',['spec']]],text:'Что ответил ОСТ?',opts:[O('ok','Замечаний нет'),O('no_tu','Нет ТУ на специзделие'),O('other','Другие замечания')]},
+ {id:'shops',st:1,gate:true,kind:'shops',text:'По каким цехам ОПП распределил работы?',hint:'Список цехов меняется в настройках.'},
+ {id:'feasible',st:1,gate:true,text:'Итог по заключениям: работы выполнимы?',opts:[O('yes','Да'),O('partial','Частично или с условиями'),O('no','Нет, готовим отказ')]},
+
+ {id:'terms',st:2,gate:true,when:[['feasible',CAN]],text:'Сроки цехов и поставок укладываются в требование заказчика?',opts:[O('yes','Да'),O('no','Нет, нужно согласовать срок')]},
+
+ {id:'reply',st:4,kind:'multi',when:[['feasible',CAN]],text:'Что пришло от заказчика после КП?',hint:'Можно выбрать несколько.',opts:[O('contract','Запрос договора'),O('guarantee','Гарантийное письмо'),O('rkm','Запрос расчётно-калькуляционных материалов'),O('none','Ничего или отказ')]},
+ {id:'signs',st:4,when:[['goz',['yes']],['reply',['contract','guarantee']]],text:'На письме 2 подписи, одна из них ВП?',hint:'По ГОЗ без двух подписей общество к работам не приступает.',opts:[O('yes','Да'),O('no','Нет')]},
+ {id:'signer',st:4,when:[['reply',['contract','guarantee']]],text:'Подписал директор или лицо с доверенностью на финансы?',opts:[O('yes','Да'),O('no','Нет или неясно')]}
+],tasks:[
+ {id:'reg',st:0,title:'Зарегистрировать заявку',hint:'Входящий номер, карточка в журнале.'},
+ {id:'docs_req',st:0,when:[['docs',['partial','none']]],title:'Запросить документацию у заказчика',hint:'Ремонтная документация, чертежи помещений, схемы подключения, ТУ.'},
+ {id:'rewrite',st:0,when:[['gost',['rewrite']]],title:'Отправить заказчику предложение по формулировке',hint:'Текст письма собран в комментарии. Отредактируйте и отправьте.'},
+ {id:'internal',st:0,when:[['gost',['internal']]],title:'Подготовить уточнённую формулировку для служб',hint:'Приложить исправленный текст к рассылке.'},
+ {id:'heavy',st:0,when:[['weight',['yes','unknown']]],title:'Решить вопрос с подъёмом груза >15 кг',hint:'Мы не поднимаем оборудование тяжелее 15 кг. Такелаж силами заказчика или отдельной строкой в КП.'},
+ {id:'cable_date',st:0,when:[['cond',['cable_date']]],title:'Зафиксировать требование по году выпуска кабеля',hint:'Сообщить ОВК и цеху Каб: кабель со склада старше требуемого года не использовать.'},
+ {id:'special',st:0,when:[['cond',['other']]],title:'Записать особые условия заказчика',hint:'Разослать службам вместе с заявкой.'},
+
+ {id:'tz_ogt',st:1,title:'Заключение ОГТ',hint:'Возможность работ, наличие технологии, методики, закупочная ведомость.'},
+ {id:'tz_ogk',st:1,when:[['type',WORKS]],title:'Заключение ОГК',hint:'Электросхемы, чертежи помещений, места установки, крепёж, трассы кабеля, подключение и наконечники, карты разрешений, ТУ на оборудование. При крупном проекте база данных: оборудование, индексы, прокладка, подключение.'},
+ {id:'tz_ost',st:1,when:[['type',['spec']]],title:'Заключение ОСТ по спецтехнике',hint:'ОСТ закрывает функции ОГК, ОГТ и ОПП для спецтехники. Проверить наличие ТУ на специзделие.'},
+ {id:'tz_opp',st:1,title:'Ведомость распределения работ (ОПП)',hint:'ОПП выделяет работы и распределяет их по цехам-исполнителям.'},
+ {id:'tz_ovk',st:1,when:[['buy',['yes','unknown']]],title:'Запрос в ОВК',hint:'Возможность закупки оборудования и кабеля, сроки поставки, наличие на складах и в других заказах.'},
+ {id:'fix_ogt',st:1,any:[['ogt_res',['no_tech','no_docs']]],title:'Согласовать с заказчиком: нет технологии или документации',hint:'Предложить разработку технологии ОГТ или запросить ремонтную документацию.'},
+ {id:'fix_ogk',st:1,any:[['ogk_res',['no_draw','no_conn','no_route']]],title:'Запросить у заказчика данные для ОГК',hint:'Чертежи помещений, места установки, трассы кабеля, схемы подключения, требования к крепежу и наконечникам.'},
+ {id:'permit',st:1,when:[['ogk_res',['permit']]],title:'Оформить карту разрешения (ОГК)',hint:'Отступление от документа.'},
+ {id:'fix_ost',st:1,when:[['ost_res',['no_tu']]],title:'Запросить ТУ на специзделие',hint:''},
+
+ {id:'lab',st:2,perShop:true,when:[['feasible',CAN]],title:'Трудоёмкость и заявка на материалы',hint:'Цех присылает трудоёмкость, ОЗП и заявку на материалы: от ветоши и наконечников до спецмасла для проверки давления.'},
+ {id:'buy_ved',st:2,when:[['feasible',CAN],['buy',['yes','unknown']]],title:'Закупочная ведомость (ОСТ или ОГТ)',hint:''},
+ {id:'ovk_req',st:2,when:[['feasible',CAN],['buy',['yes','unknown']]],title:'Коммерческие запросы ОВК по закупочной ведомости',hint:''},
+ {id:'vp_buy',st:2,when:[['feasible',CAN],['goz',['yes']],['buy',['yes','unknown']]],title:'Закупка с приёмкой ВП',hint:'По ГОЗ всё с приёмкой ВП. Указать в запросах ОВК.'},
+ {id:'cable_chk',st:2,when:[['feasible',CAN],['cond',['cable_date']]],title:'Проверить год выпуска кабеля на складе',hint:'Если на складе кабель старше требуемого, включить закупку нового.'},
+ {id:'dism_plan',st:2,when:[['feasible',CAN],['dismount',['yes']]],title:'Учесть демонтаж и доставку в трудоёмкости',hint:'Демонтаж, упаковка, транспорт, приём и входной контроль (Цех Тр).'},
+ {id:'terms',st:2,when:[['terms',['no']]],title:'Согласовать срок с заказчиком',hint:'Предложить реальный срок по расчёту цехов и поставок.'},
+
+ {id:'price',st:3,when:[['feasible',CAN]],title:'Цена от экономистов',hint:'Экономисты считают цену по трудоёмкости цехов и закупкам.'},
+ {id:'kp_write',st:3,when:[['feasible',CAN]],title:'Составить КП',hint:'На основе заключений служб и цены. Проверить формулировки.'},
+ {id:'refusal',st:3,when:[['feasible',['no']]],title:'Подготовить мотивированный отказ',hint:'Со ссылкой на заключения служб.'},
+ {id:'kp_send',st:3,final:true,title:'Отправить КП заказчику',hint:'Недоступно, пока по этому КП висят долги.'},
+
+ {id:'rkm',st:4,when:[['reply',['rkm']]],title:'Подготовить расчётно-калькуляционные материалы',hint:'Вместе с экономистами.'},
+ {id:'contract',st:4,when:[['reply',['contract']]],title:'Подготовить и согласовать договор',hint:''},
+ {id:'sign_fix',st:4,any:[['signs',['no']],['signer',['no']]],title:'Запросить письмо с правильными подписями',hint:'ГОЗ: 2 подписи, одна от ВП. Одна подпись директора или лица с доверенностью на финансы. Без этого к работам не приступаем.'},
+ {id:'lost',st:4,when:[['reply',['none']]],title:'Зафиксировать: заказ не состоялся',hint:''},
+
+ {id:'ukaz',st:5,when:[['reply',['contract','guarantee']]],title:'Написать указания на работы',hint:'Формулировки должны дословно совпадать с договором или гарантийным письмом.'},
+ {id:'dism_go',st:5,when:[['reply',['contract','guarantee']],['dismount',['yes']]],title:'Организовать демонтаж и доставку оборудования',hint:'Цех Тр: приём груза, входной контроль. Тяжелее 15 кг сами не поднимаем.'},
+ {id:'mat_go',st:5,when:[['reply',['contract','guarantee']]],title:'Проверить, что заявки цехов на материалы ушли в ОВК',hint:''},
+ {id:'naryad',st:5,final:true,when:[['reply',['contract','guarantee']]],title:'Запросить открытие наряд-заказа',hint:'Основание: договор или гарантийное письмо. Для отнесения затрат.'}
+]};
+function clone(x){return JSON.parse(JSON.stringify(x))}
+function qById(id){return S.tree.questions.filter(function(q){return q.id===id})[0]}
+function qOpts(q){
+  if(!q)return [];
+  if(q.kind==='shops')return S.settings.shops.map(function(s,i){return {v:String(i),l:s}});
+  return q.opts||[];
+}
+function match(a,c){
+  var v=a[c[0]]; if(v==null)return false;
+  if(Array.isArray(v))return v.some(function(x){return c[1].indexOf(String(x))>=0});
+  return c[1].indexOf(String(v))>=0;
+}
+function condOk(a,o){
+  var all=(o.when||[]).every(function(c){return match(a,c)});
+  var any=!(o.any&&o.any.length)||o.any.some(function(c){return match(a,c)});
+  return all&&any;
+}
+function questionsFor(a){return S.tree.questions.filter(function(q){return condOk(a,q)})}
+function isGateTask(t){
+  return (t.when||[]).concat(t.any||[]).some(function(c){var q=qById(c[0]);return q&&q.gate&&q.st===t.st});
+}
+function buildTasks(kp){
+  var a=kp.answers, T=[], shops=S.settings.shops;
+  S.tree.tasks.forEach(function(t){
+    if(!condOk(a,t))return;
+    var base={st:t.st,hint:t.hint||'',gate:isGateTask(t),final:!!t.final,src:t.id};
+    if(t.perShop){
+      (a.shops||[]).forEach(function(i){ if(shops[i]!=null)T.push(Object.assign({},base,{id:t.id+'_'+i,title:t.title+': '+shops[i]})) });
+    } else T.push(Object.assign({},base,{id:t.id,title:t.title}));
+  });
+  (kp.custom||[]).forEach(function(t){T.push({id:t.id,st:t.st,title:t.title,hint:t.hint||'',custom:true})});
+  // финальная задача всегда последней в своём этапе
+  T.sort(function(x,y){return (x.st-y.st)||((x.final?1:0)-(y.final?1:0))});
+  return T;
+}
+function condText(list){
+  return (list||[]).map(function(c){
+    var q=qById(c[0]); if(!q)return '«?»';
+    var labels=qOpts(q).filter(function(o){return c[1].indexOf(o.v)>=0}).map(function(o){return o.l});
+    return '«'+q.text.replace(/\?$/,'')+'» = '+(labels.join(' / ')||'—');
+  }).join('; ');
+}
+
+
+/* ---------- GOST checker ---------- */
+var RULES=[
+ {re:/нержав[а-яё]*/gi,term:'нержавейка',why:'Разговорное название, марка не определена.',fix:'коррозионно-стойкая сталь марки 12Х18Н10Т',ref:'ГОСТ 5632',rep:'коррозионно-стойкая сталь (марку уточнить, напр. 12Х18Н10Т по ГОСТ 5632)'},
+ {re:/желез[а-яё]*/gi,term:'железо',why:'Не указан материал.',fix:'сталь с маркой, напр. Ст3сп или сталь 45',ref:'ГОСТ 380 / ГОСТ 1050',rep:'сталь (марку уточнить)'},
+ {re:/(?<![а-яё])алюмини[а-яё]*(?![а-яё]*\s+(?:сплав|марк|Д16|АМг|АД))/gi,term:'алюминий',why:'Без марки сплава нельзя дать нормы и цену.',fix:'алюминиевый сплав с маркой, напр. Д16Т или АМг6',ref:'ГОСТ 4784',rep:null},
+ {re:/латун[а-яё]*/gi,term:'латунь',why:'Не указана марка.',fix:'латунь марки Л63 или ЛС59-1',ref:'ГОСТ 15527',rep:null},
+ {re:/оцинков[а-яё]*/gi,term:'оцинковка',why:'Не указан вид и толщина покрытия.',fix:'покрытие Ц9.хр (цинковое, 9 мкм, хроматированное)',ref:'ГОСТ 9.306',rep:'цинковое покрытие (обозначение по ГОСТ 9.306, напр. Ц9.хр)'},
+ {re:/анодир[а-яё]*/gi,term:'анодировка',why:'Не указан вид покрытия.',fix:'покрытие Ан.Окс (анодно-окисное)',ref:'ГОСТ 9.306',rep:'анодно-окисное покрытие (Ан.Окс по ГОСТ 9.306)'},
+ {re:/(?:покрас[а-яё]*|покрас[а-яё]+|краск[а-яё]*|покраш[а-яё]*)/gi,term:'покраска',why:'Не указана система и класс покрытия.',fix:'лакокрасочное покрытие с обозначением, условия эксплуатации',ref:'ГОСТ 9.032 / ГОСТ 9.104',rep:'лакокрасочное покрытие (обозначение по ГОСТ 9.032)'},
+ {re:/термичк[а-яё]*/gi,term:'термичка',why:'Разговорное.',fix:'термическая обработка с указанием твёрдости',ref:'',rep:'термическая обработка'},
+ {re:/(?:кал[её]н[а-яё]*|закалит[а-яё]*)/gi,term:'калёный',why:'Не задан результат термообработки.',fix:'закалка до твёрдости, напр. 40…45 HRC',ref:'ГОСТ 9013',rep:null},
+ {re:/болванк[а-яё]*/gi,term:'болванка',why:'Разговорное.',fix:'заготовка',ref:'',rep:'заготовка'},
+ {re:/люфт[а-яё]*/gi,term:'люфт',why:'Разговорное.',fix:'зазор с предельными отклонениями',ref:'',rep:'зазор'},
+ {re:/шкур[а-яё]*/gi,term:'шкурить',why:'Не задана шероховатость.',fix:'шлифование до Ra 1,6 (значение уточнить)',ref:'ГОСТ 2789',rep:'шлифовать (шероховатость Ra по ГОСТ 2789)'},
+ {re:/(?:гладк[а-яё]*|полиров[а-яё]*)/gi,term:'гладкий',why:'Шероховатость не задана числом.',fix:'шероховатость поверхности Ra …',ref:'ГОСТ 2789',rep:null},
+ {re:/(?:примерно|около|приблизительно|порядка|~\s?\d)/gi,term:'примерно',why:'Размер без предельных отклонений нельзя изготовить и проверить.',fix:'номинальный размер с предельными отклонениями',ref:'ГОСТ 25346 / ГОСТ 30893.1',rep:null},
+ {re:/по\s+месту/gi,term:'по месту',why:'Размер не определён документацией.',fix:'размер задать в КД',ref:'ЕСКД',rep:null},
+ {re:/по\s+образцу/gi,term:'по образцу',why:'Образец не заменяет КД.',fix:'обмер образца с оформлением эскизной КД',ref:'ГОСТ 2.125',rep:'по образцу (с оформлением эскизной КД по ГОСТ 2.125)'},
+ {re:/(?:аналог[а-яё]*|или\s+подобн[а-яё]*)/gi,term:'аналог',why:'Не заданы критерии замены.',fix:'перечень допускаемых замен или требования к характеристикам',ref:'',rep:null},
+ {re:/(?:сварит[а-яё]*|сварк[а-яё]*)/gi,term:'сварка',why:'Не указан способ и тип соединения.',fix:'способ сварки и тип шва',ref:'ГОСТ 5264 / ГОСТ 14771',rep:null,soft:true},
+ {re:/(?:болт[а-яё]*|гайк[а-яё]*|винт[а-яё]*|шайб[а-яё]*)(?![^.]{0,40}ГОСТ)/gi,term:'крепёж без ГОСТ',why:'Крепёж без обозначения.',fix:'полное обозначение, напр. Болт М10×40 ГОСТ 7798',ref:'ГОСТ 7798',rep:null,soft:true},
+ {re:/движ[оеуа]к[а-яё]*/gi,term:'движок',why:'Разговорное.',fix:'электродвигатель с указанием типа',ref:'',rep:'электродвигатель'},
+ {re:/(?:подкинуть|кинуть|прокинуть)\s+кабел[а-яё]*/gi,term:'кинуть кабель',why:'Разговорное.',fix:'проложить кабель с указанием марки, сечения и трассы',ref:'',rep:'проложить кабель'},
+ {re:/щитк[а-яё]*/gi,term:'щиток',why:'Не определён тип щита.',fix:'щит распределительный с обозначением по схеме',ref:'',rep:null},
+ {re:/запитать|запитк[а-яё]*/gi,term:'запитать',why:'Разговорное.',fix:'подключить к сети электропитания',ref:'',rep:'подключить к сети электропитания'},
+ {re:/прозвон[а-яё]*/gi,term:'прозвонить',why:'Разговорное.',fix:'проверка целостности цепей',ref:'',rep:'проверить целостность цепей'},
+ {re:/мегер[а-яё]*/gi,term:'мегер',why:'Разговорное.',fix:'измерение сопротивления изоляции мегаомметром',ref:'',rep:'мегаомметр'},
+ {re:/наконечник[а-яё]*\s+(?:любые|любой|какие\s+есть)/gi,term:'наконечники любые',why:'Тип наконечника влияет на заявку материалов и ОГК.',fix:'тип и сечение наконечника',ref:'ГОСТ 7386',rep:null},
+ {re:/(?<![А-ЯЁA-Z])кабел[ьяюем](?![^.]{0,25}[А-ЯЁ]{2,}[а-яё]*\s*\d)/g,term:'кабель без марки',why:'Не указана марка и сечение кабеля.',fix:'марка, число жил и сечение, напр. КНРк 3×2,5',ref:'',rep:null,soft:true},
+ {re:/(?<![а-яё])автомат(?![а-яё]*\s+выключ)/gi,term:'автомат',why:'Разговорное.',fix:'автоматический выключатель с номиналом',ref:'',rep:null,soft:true},
+ {re:/(?:срочно|asap|вчера)/gi,term:'срочно',why:'Срок должен быть датой.',fix:'конкретная дата поставки',ref:'',rep:null,soft:true}
+];
+function gostCheck(text){
+  var found=[], marks=[];
+  RULES.forEach(function(r){
+    r.re.lastIndex=0; var m, hit=false;
+    while((m=r.re.exec(text))){ hit=true; marks.push([m.index,m.index+m[0].length]); if(!m[0].length)r.re.lastIndex++ }
+    if(hit)found.push({term:r.term,why:r.why,fix:r.fix,ref:r.ref,soft:!!r.soft});
+  });
+  if(text.trim()){
+    if(!/(ГОСТ|ОСТ|ТУ\s|СТО|ЕСКД)/.test(text))found.push({term:'нет ссылок на НД',why:'В заявке нет ни одного ГОСТ, ОСТ или ТУ.',fix:'указать нормативные документы на изделие и материалы',ref:'',soft:true});
+    if(!/\d+\s*(шт|компл|кг|м\b|ед|изд|партии)/i.test(text))found.push({term:'нет количества',why:'Не указано количество.',fix:'количество в штуках или комплектах',ref:'',soft:true});
+  }
+  var rew=text;
+  RULES.forEach(function(r){ if(r.rep){ r.re.lastIndex=0; rew=rew.replace(r.re,r.rep) } });
+  return {findings:found, marks:marks, rewrite:rew};
+}
+function highlight(text,marks){
+  marks=marks.slice().sort(function(x,y){return x[0]-y[0]});
+  var out='',pos=0;
+  marks.forEach(function(m){ if(m[0]<pos)return; out+=esc(text.slice(pos,m[0]))+'<mark>'+esc(text.slice(m[0],m[1]))+'</mark>'; pos=m[1] });
+  return out+esc(text.slice(pos));
+}
+function letterFor(kp){
+  var g=kp.gost; if(!g)return '';
+  var lines=g.findings.filter(function(f){return !f.soft||f.term==='нет количества'||f.term==='нет ссылок на НД'}).map(function(f,i){return (i+1)+') «'+f.term+'»: '+f.why+' Предлагаем: '+f.fix+(f.ref?' ('+f.ref+').':'.')});
+  return 'Уважаемые коллеги!\nДля подготовки ответа на '+kp.num+' просим уточнить формулировку заявки:\n'+lines.join('\n')+'\n\nПредлагаемая редакция:\n'+g.rewrite;
+}
+
+/* ---------- state ---------- */
+function load(){try{var r=localStorage.getItem(LS);return r?JSON.parse(r):null}catch(e){return null}}
+function save(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
+function uid(){return Math.random().toString(36).slice(2,9)}
+function today(){var d=new Date();d.setHours(0,0,0,0);return d.getTime()}
+function iso(t){var d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function parseIso(s){if(!s)return null;var p=s.split('-');return new Date(+p[0],p[1]-1,+p[2]).getTime()}
+function fmt(s){if(!s)return '—';var p=s.split('-');return p[2]+'.'+p[1]}
+function daysLeft(s){var t=parseIso(s);return t==null?null:Math.round((t-today())/DAY)}
+function dl(n){if(n==null)return '';if(n<0)return 'просрочено на '+(-n)+' дн.';if(n===0)return 'сегодня';if(n===1)return 'завтра';return 'через '+n+' дн.'}
+
+function seed(){
+  var t=today();
+  var ex={id:uid(),num:'КП № 0347/26',customer:'Заказчик А',subject:'Ремонт электродвигателя насоса и прокладка кабеля',
+    text:'Просим отремонтировать движок насоса НЦВ и подкинуть кабель к щитку, кабель примерно 40 м, наконечники любые. Кабель не ранее 2020 г. Срочно.',
+    received:iso(t-3*DAY),deadline:iso(t+6*DAY),urgent:true,example:true,created:Date.now(),
+    answers:{goz:'yes',type:['repair','cable','shield'],docs:'partial',dismount:'yes',weight:'yes',cond:['cable_date'],gost:'rewrite',buy:'yes'},
+    ts:{reg:{s:'done'},docs_req:{s:'done',c:'Запросили ремонтную документацию на двигатель, письмо исх. 112.'},rewrite:{s:'done',c:''},
+        heavy:{s:'debt',due:iso(t+2*DAY),c:'Двигатель около 60 кг. Отложил: уточнить у заказчика, кто демонтирует и грузит.'},
+        cable_date:{s:'done',who:'ОВК, Цех Каб'},tz_ogt:{s:'done',who:'ОГТ',c:'Технология ремонта есть.'},tz_opp:{s:'open',who:'ОПП'}},
+    finished:false};
+  ex.gost=gostCheck(ex.text); ex.ts.rewrite.c=letterFor(ex);
+  var ex2={id:uid(),num:'КП № 0351/26',customer:'Заказчик Б',subject:'Монтаж и подключение щита ГРЩ',
+    text:'Выполнить монтаж щита распределительного и подключение кабелем КНРк 3×2,5, 120 м, наконечники по ГОСТ 7386, с приёмкой ВП. Документация прилагается.',
+    received:iso(t),deadline:iso(t+14*DAY),urgent:false,example:true,created:Date.now()-1,answers:{},ts:{},finished:false};
+  return {v:1,treeVer:TREE_VER,xp:135,tree:clone(DEF_TREE),kps:[ex,ex2],settings:{shops:DEF_SHOPS.slice()}};
+}
+
+var S=load()||seed();
+if(!S.settings)S.settings={shops:[]};
+if(!S.tree)S.tree=clone(DEF_TREE);
+if((S.treeVer||1)<TREE_VER){var fresh=seed();S.tree=fresh.tree;S.settings.shops=fresh.settings.shops;S.kps=S.kps.filter(function(k){return !k.example}).concat(fresh.kps);S.treeVer=TREE_VER;save()}
+var ui={view:'home',kpId:null,tab:'tasks',filter:'active',sheet:null,qdraft:null,toast:null,pulse:null,confirm:null};
+if(window.claude&&window.claude.hot&&window.claude.hot.data&&window.claude.hot.data.ui)ui=Object.assign(ui,window.claude.hot.data.ui);
+try{window.claude&&window.claude.hot&&window.claude.hot.snapshot&&window.claude.hot.snapshot(function(){return {ui:ui}})}catch(e){}
+
+function kpById(id){return S.kps.filter(function(k){return k.id===id})[0]}
+function stOf(kp,t){return kp.ts[t.id]||{s:'open'}}
+function isClosed(kp,t){var s=stOf(kp,t).s;return s==='done'||s==='debt'}
+
+function analyze(kp){
+  var a=kp.answers, tasks=buildTasks(kp), stages=[], unlocked=true;
+  for(var i=0;i<N;i++){
+    var sq=questionsFor(a).filter(function(q){return q.st===i});
+    var st=tasks.filter(function(t){return t.st===i});
+    var baseClosed=st.filter(function(t){return !t.gate&&!t.final}).every(function(t){return isClosed(kp,t)});
+    var pend=sq.filter(function(q){return !(q.id in a)});
+    var avail=pend.filter(function(q){return !q.gate||baseClosed});
+    var open=st.filter(function(t){return !isClosed(kp,t)});
+    var done=unlocked&&pend.length===0&&open.length===0;
+    stages.push({i:i,unlocked:unlocked,done:done,avail:unlocked?avail:[],pend:pend,tasks:st,open:open,
+      debts:st.filter(function(t){return stOf(kp,t).s==='debt'})});
+    unlocked=unlocked&&done;
+  }
+  var active=stages.filter(function(s){return s.unlocked&&!s.done})[0]||null;
+  var allT=tasks.length, closedT=tasks.filter(function(t){return stOf(kp,t).s==='done'}).length;
+  var qa=questionsFor(a), qTotal=qa.length, qDone=qa.filter(function(q){return q.id in a}).length;
+  var pct=Math.round(100*(closedT+qDone)/Math.max(1,allT+qTotal));
+  var debts=tasks.filter(function(t){return stOf(kp,t).s==='debt'});
+  return {tasks:tasks,stages:stages,active:active,pct:stages[N-1].done?100:Math.min(99,pct),debts:debts};
+}
+
+function addXp(n,msg){
+  var before=lvl(S.xp).n; S.xp=Math.max(0,S.xp+n); var after=lvl(S.xp).n;
+  toast((msg||'')+(n>0?' <span class="xp">+'+n+' XP</span>':''));
+  if(after>before)setTimeout(function(){toast('Новый уровень '+after+': '+lvl(S.xp).title)},1600);
+}
+function lvl(xp){var n=Math.floor(xp/100)+1;return {n:n,title:TITLES[Math.min(TITLES.length-1,n-1)],cur:xp%100}}
+
+var toastTimer;
+function toast(html){ui.toast=html;renderToast();clearTimeout(toastTimer);toastTimer=setTimeout(function(){ui.toast=null;renderToast()},2600)}
+function renderToast(){var el=document.getElementById('toast');if(el)el.remove();if(!ui.toast)return;el=document.createElement('div');el.id='toast';el.className='toast';el.setAttribute('role','status');el.innerHTML=ui.toast;document.body.appendChild(el)}
+
+/* track stage completion to celebrate unlocks */
+function afterChange(kp,prev){
+  var now=analyze(kp);
+  for(var i=0;i<N;i++){
+    if(!prev.stages[i].done&&now.stages[i].done){
+      if(i<N-1){ui.pulse=i+1;setTimeout(function(){toast('Операция '+OPS[i]+' пройдена. Открыт этап '+OPS[i+1]+' «'+STAGES[i+1]+'»')},900)}
+      else if(!kp.finished){kp.finished=true;setTimeout(function(){addXp(50,'КП закрыто.')},900)}
+      break;
+    }
+  }
+  save();render();
+}
+
+/* ---------- views ---------- */
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+
+function routeHtml(an,big,kpId){
+  return '<div class="route'+(big?' big':'')+'">'+an.stages.map(function(s){
+    var cls=s.done?'done':(s.unlocked?'active':'');
+    if(big&&ui.pulse===s.i)cls+=' pulse';
+    return '<div class="op '+cls+'"><span class="node">'+(s.done?I.check.replace('stroke-width="3"','stroke-width="3" width="14" height="14"'):OPS[s.i])+'</span>'+
+      (s.debts.length?'<span class="dbt">'+s.debts.length+'</span>':'')+
+      '<span class="nm">'+STAGES_SHORT[s.i]+'</span></div>';
+  }).join('')+'</div>';
+}
+
+function milestoneFor(kp,st){
+  var f=buildTasks(kp).filter(function(t){return t.final&&t.st>=st}).sort(function(x,y){return x.st-y.st})[0];
+  return f?OPS[f.st]+' «'+f.title+'»':'этапа';
+}
+function allDebts(){
+  var out=[];
+  S.kps.forEach(function(kp){ if(kp.finished)return; analyze(kp).debts.forEach(function(t){ out.push({kp:kp,t:t,due:stOf(kp,t).due}) }) });
+  out.sort(function(x,y){return (x.due||'9').localeCompare(y.due||'9')});
+  return out;
+}
+
+function debtRow(d){
+  var n=daysLeft(d.due), cls=n!=null&&n<=1?'urgent':'debt';
+  return '<button class="debt-row" data-act="openTask" data-kp="'+d.kp.id+'" data-t="'+d.t.id+'">'+
+    '<span class="chip '+cls+' mono">'+fmt(d.due)+'</span><span class="t">'+esc(d.t.title)+
+    '<small>'+esc(d.kp.num)+' · погасить '+dl(n)+', иначе срыв '+esc(milestoneFor(d.kp,d.t.st))+'</small></span></button>';
+}
+
+function viewHome(){
+  var L=lvl(S.xp), debts=allDebts();
+  var list=S.kps.filter(function(k){return ui.filter==='active'?!k.finished:k.finished})
+    .sort(function(x,y){return (x.urgent===y.urgent?0:x.urgent?-1:1)||(x.deadline||'').localeCompare(y.deadline||'')});
+  var h='<div class="top"><h1 class="disp">Хаб КП</h1><button class="iconbtn" data-act="openTree" aria-label="Дерево вопросов">'+I.tree+'</button><button class="iconbtn" data-act="settings" aria-label="Настройки">'+I.gear+'</button></div><div class="stack">';
+  h+='<div class="level"><div class="lvl-badge">'+L.n+'</div><div><div class="row"><b>'+L.title+'</b><span class="mono muted">'+L.cur+' / 100 XP</span></div><div class="bar"><i style="width:'+L.cur+'%"></i></div></div></div>';
+  if(debts.length){
+    h+='<div class="debts"><h3>'+I.clock.replace('<svg','<svg width="18" height="18"')+'Долги по срочным работам: '+debts.length+'</h3>'+debts.slice(0,4).map(debtRow).join('')+'</div>';
+  }
+  h+='<div class="seg" role="group"><button data-act="filter" data-v="active" aria-pressed="'+(ui.filter==='active')+'">В работе ('+S.kps.filter(function(k){return !k.finished}).length+')</button><button data-act="filter" data-v="done" aria-pressed="'+(ui.filter==='done')+'">Закрытые ('+S.kps.filter(function(k){return k.finished}).length+')</button></div>';
+  if(!list.length)h+='<div class="empty">'+(ui.filter==='active'?'Нет КП в работе. Нажмите «Новое КП», чтобы внести первое.':'Закрытых КП пока нет.')+'</div>';
+  list.forEach(function(kp){
+    var an=analyze(kp), n=daysLeft(kp.deadline);
+    var stageName=an.active?OPS[an.active.i]+' '+STAGES[an.active.i]:'Закрыто';
+    h+='<button class="kp" data-act="openKp" data-id="'+kp.id+'"><div class="kp-head"><span class="kp-num">'+esc(kp.num)+'</span><span class="muted" style="font-size:13px">'+esc(kp.customer)+'</span></div>'+
+      '<div class="kp-subj">'+esc(kp.subject)+'</div>'+routeHtml(an,false)+
+      '<div class="chips">'+(kp.urgent?'<span class="chip urgent">Срочно</span>':'')+
+      (an.debts.length?'<span class="chip debt">Долгов: '+an.debts.length+'</span>':'')+
+      '<span class="chip">'+esc(stageName)+'</span>'+
+      (kp.deadline&&!kp.finished?'<span class="chip '+(n<0?'urgent':n<=2?'warn':'')+'">Ответ '+fmt(kp.deadline)+', '+dl(n)+'</span>':'')+
+      (kp.example?'<span class="chip ex">Пример</span>':'')+'</div></button>';
+  });
+  h+='</div><button class="fab" data-act="newKp">'+I.plus+'Новое КП</button>';
+  return h;
+}
+
+function viewNew(){
+  var t=today();
+  return '<div class="top"><button class="iconbtn" data-act="home" aria-label="Назад">'+I.back+'</button><h1 class="disp">Новое КП</h1></div>'+
+  '<form id="newForm" class="stack" autocomplete="off">'+
+  '<label class="field"><span>Номер КП</span><input type="text" id="f-num" required placeholder="КП № 0352/26"></label>'+
+  '<label class="field"><span>Заказчик</span><input type="text" id="f-cust" placeholder="Условное обозначение"></label>'+
+  '<label class="field"><span>Предмет кратко</span><input type="text" id="f-subj" required placeholder="Корпус, 12 шт"></label>'+
+  '<label class="field"><span>Формулировка заявки</span><textarea id="f-text" placeholder="Текст из заявки для проверки формулировок"></textarea></label>'+
+  '<div class="facts" style="grid-template-columns:1fr 1fr"><label class="field"><span>Получено</span><input type="date" id="f-rec" value="'+iso(t)+'"></label>'+
+  '<label class="field"><span>Срок ответа</span><input type="date" id="f-dl" value="'+iso(t+10*DAY)+'"></label></div>'+
+  '<div class="toggle"><div class="t">Срочная работа<small>Можно откладывать шаги в долг</small></div><button type="button" class="sw" role="switch" id="f-urg" aria-checked="false" data-act="swNew"></button></div>'+
+  '<p class="note">Данные хранятся только в этом браузере на телефоне. Для режимных сведений используйте условные обозначения.</p>'+
+  '<button class="cta" type="submit"><span>Внести и начать разбор<small>Первый вопрос откроется сразу</small></span>'+I.arrow+'</button></form>';
+}
+
+function viewKp(){
+  var kp=kpById(ui.kpId); if(!kp){ui.view='home';return viewHome()}
+  var an=analyze(kp), n=daysLeft(kp.deadline);
+  var tasksTotal=an.tasks.length, tasksDone=an.tasks.filter(function(t){return stOf(kp,t).s==='done'}).length;
+  var h='<div class="top"><button class="iconbtn" data-act="home" aria-label="К списку">'+I.back+'</button><h1 class="mono" style="font-size:15px">'+esc(kp.num)+'</h1>'+
+    '<button class="iconbtn" data-act="editKp" aria-label="Карточка КП">'+I.gear+'</button></div><div class="stack">';
+  h+='<div class="hero"><div><div class="label">'+esc(kp.customer||'Заказчик не указан')+'</div><div class="subj">'+esc(kp.subject)+'</div></div>'+
+    routeHtml(an,true)+
+    '<div class="facts"><div class="fact"><b>'+an.pct+'%</b><span>готовность</span></div><div class="fact"><b>'+tasksDone+'/'+tasksTotal+'</b><span>задач</span></div>'+
+    '<div class="fact"><b style="color:'+(n!=null&&n<0?'var(--danger)':n!=null&&n<=2?'var(--warn)':'inherit')+'">'+fmt(kp.deadline)+'</b><span>'+(kp.finished?'ответ дан':esc(dl(n)||'срок'))+'</span></div></div>';
+  // CTA
+  var a=an.active;
+  if(!a){h+='<div class="cta done"><span>КП закрыто<small>Все этапы маршрута пройдены</small></span>'+I.flag+'</div>'}
+  else if(a.avail.length){h+='<button class="cta" data-act="startQ"><span>Ответить на вопросы<small>Операция '+OPS[a.i]+' · '+STAGES[a.i]+'</small></span>'+I.arrow+'</button>'}
+  else if(a.open.length){h+='<button class="cta" data-act="showTasks"><span>Открыто задач: '+a.open.length+'<small>Операция '+OPS[a.i]+' · '+STAGES[a.i]+'</small></span>'+I.arrow+'</button>'}
+  h+='<div class="toggle"><div class="t">Режим «Срочно»<small>'+(kp.urgent?'Шаги можно отложить в долг с датой':'Все шаги по порядку')+'</small></div><button class="sw" role="switch" aria-checked="'+!!kp.urgent+'" data-act="urgent" aria-label="Срочно"></button></div>';
+  h+='</div>';
+  if(an.debts.length){
+    h+='<div class="debts"><h3>Долги по этому КП: '+an.debts.length+'</h3>'+an.debts.map(function(t){return debtRow({kp:kp,t:t,due:stOf(kp,t).due})}).join('')+'</div>';
+  }
+  h+='<div class="seg" role="tablist">'+[['tasks','Задачи'],['answers','Ответы'],['text','Заявка']].map(function(x){return '<button data-act="tab" data-v="'+x[0]+'" aria-pressed="'+(ui.tab===x[0])+'">'+x[1]+'</button>'}).join('')+'</div>';
+  if(ui.tab==='tasks')h+=tasksHtml(kp,an);
+  if(ui.tab==='answers')h+=answersHtml(kp);
+  if(ui.tab==='text')h+=textHtml(kp);
+  h+='</div>';
+  return h;
+}
+
+function taskRow(kp,t){
+  var s=stOf(kp,t), cls=s.s==='done'?'done':s.s==='debt'?'debt':'';
+  var box=s.s==='done'?I.check:s.s==='debt'?I.clock:'';
+  var sub=s.s==='debt'?'Долг · погасить до '+fmt(s.due):(t.hint||'');
+  return '<button class="task '+cls+'" data-act="openTask" data-kp="'+kp.id+'" data-t="'+t.id+'"><span class="box">'+box+'</span><span class="tt"><b>'+esc(t.title)+'</b>'+
+    (sub?'<small>'+esc(sub.length>90?sub.slice(0,88)+'…':sub)+'</small>':'')+(s.who?'<small>Исполнитель: '+esc(s.who)+'</small>':'')+(s.c?'<small>'+I.chat+' '+esc(s.c.split('\n')[0].slice(0,60))+'</small>':'')+'</span></button>';
+}
+
+function tasksHtml(kp,an){
+  var h='';
+  an.stages.forEach(function(s){
+    var label='<span class="mono">'+OPS[s.i]+'</span>'+STAGES[s.i];
+    if(!s.unlocked){
+      h+='<div class="group locked"><div class="group-h">'+label+'</div><div class="locked-card">'+I.lock+'Откроется после операции '+OPS[s.i-1]+'. Задачи появятся после ответов на вопросы.</div></div>';
+      return;
+    }
+    var vis=s.tasks;
+    h+='<div class="group"><div class="group-h">'+label+(s.done?' <span class="chip ok">пройдена</span>':'')+'</div>';
+    if(s.avail.length)h+='<button class="locked-card" style="background:var(--accent-soft);border-color:transparent;color:var(--ink);text-align:left;width:100%" data-act="startQ">'+I.arrow+'Вопросов к ответу: '+s.avail.length+'. Ответы откроют задачи.</button>';
+    else if(s.pend.length&&!s.avail.length)h+='<div class="locked-card">'+I.lock+'Закройте задачи этапа, чтобы открылись вопросы по итогам.</div>';
+    vis.forEach(function(t){h+=taskRow(kp,t)});
+    h+='</div>';
+  });
+  if(an.active)h+='<button class="btn" data-act="newCustom">+ Своя задача в это КП</button>';
+  return h;
+}
+
+function optLabel(q,v){
+  if(q.kind==='shops')return (v||[]).map(function(i){return S.settings.shops[i]||('Цех #'+(i+1))}).join(', ')||'не выбрано';
+  if(q.kind==='multi')return (q.opts||[]).filter(function(o){return (v||[]).indexOf(o.v)>=0}).map(function(o){return o.l}).join(', ')||'не выбрано';
+  var o=(q.opts||[]).filter(function(o){return o.v===v})[0];return o?o.l:v;
+}
+function answersHtml(kp){
+  var qs=S.tree.questions.filter(function(q){return q.id in kp.answers});
+  if(!qs.length)return '<div class="empty">Ответов пока нет.</div>';
+  return '<div class="group">'+qs.map(function(q){
+    var conf=ui.confirm===q.id;
+    return '<div class="ans"><div class="tt"><span class="mono" style="color:var(--accent)">'+OPS[q.st]+'</span> '+esc(q.text)+'<b>'+esc(optLabel(q,kp.answers[q.id]))+'</b>'+
+      (conf?'<span class="note" style="color:var(--danger)">Сбросит этот и последующие ответы. Состояние задач сохранится.</span>':'')+'</div>'+
+      '<button class="btn'+(conf?' dang':'')+'" data-act="reAnswer" data-q="'+q.id+'">'+(conf?'Сбросить':'Изменить')+'</button></div>';
+  }).join('')+'</div>';
+}
+function textHtml(kp){
+  var g=gostCheck(kp.text||'');
+  return '<div class="qcard"><div class="label">Формулировка заявки</div><div style="white-space:pre-wrap">'+(kp.text?highlight(kp.text,g.marks):'<span class="muted">Текст не внесён.</span>')+'</div>'+
+    (g.findings.length?'<div class="note">Замечаний: '+g.findings.length+'. Подробный разбор в вопросе «Проверим формулировку».</div>':'')+'</div>';
+}
+
+function viewQ(){
+  var kp=kpById(ui.kpId); if(!kp){ui.view='home';return viewHome()}
+  var an=analyze(kp), a=an.active;
+  if(!a||!a.avail.length){ui.view='kp';ui.tab='tasks';return viewKp()}
+  var q=a.avail[0];
+  var stageQs=questionsFor(kp.answers).filter(function(x){return x.st===a.i});
+  var prog=stageQs.map(function(x){return '<i class="'+(x.id in kp.answers?'on':'')+'"></i>'}).join('');
+  var h='<div class="top"><button class="iconbtn" data-act="backKp" aria-label="К КП">'+I.back+'</button><h1 style="font-size:14px"><span class="mono" style="color:var(--accent)">'+OPS[a.i]+'</span> '+STAGES[a.i]+'<br><span class="mono muted" style="font-size:12px;font-weight:500">'+esc(kp.num)+'</span></h1></div>';
+  h+='<div class="stack"><div class="qprog">'+prog+'</div><div class="qcard" id="qcard"><div class="label">Вопрос</div><h2>'+esc(q.text)+'</h2>'+(q.hint?'<div class="qhint">'+esc(q.hint)+'</div>':'');
+  if(q.kind==='gost'){
+    var txt=ui.qdraft!=null?ui.qdraft:(kp.text||'');
+    var g=gostCheck(txt);
+    h+='<textarea id="gostText" aria-label="Текст заявки">'+esc(txt)+'</textarea><div class="btns"><button class="btn" data-act="gostRun">Проверить</button></div>';
+    if(txt.trim()){
+      h+='<div class="label">Найдено: '+g.findings.length+'</div><div style="white-space:pre-wrap;font-size:14px">'+highlight(txt,g.marks)+'</div>';
+      g.findings.forEach(function(f){h+='<div class="find'+(f.soft?' info':'')+'"><b>«'+esc(f.term)+'»</b><span>'+esc(f.why)+'</span><span>Предлагается: '+esc(f.fix)+'</span>'+(f.ref?'<span class="ref">'+esc(f.ref)+'</span>':'')+'</div>'});
+      if(g.rewrite!==txt)h+='<div class="label">Предлагаемая редакция</div><div class="rewrite">'+esc(g.rewrite)+'</div>';
+      if(!g.findings.length)h+='<div class="find info"><b>Явных замечаний нет</b><span>Проверьте марки, допуски и количество вручную.</span></div>';
+    }
+  }
+  if(q.kind==='multi'||q.kind==='shops'){
+    var sel=Array.isArray(ui.qdraft)?ui.qdraft:[];
+    h+='<div class="opts">'+qOpts(q).map(function(o){var on=sel.indexOf(o.v)>=0;return '<button class="opt" data-act="multi" data-v="'+esc(o.v)+'" aria-pressed="'+on+'"><span class="k">'+(on?'✓':'')+'</span><span>'+esc(o.l)+(o.s?'<small>'+esc(o.s)+'</small>':'')+'</span></button>'}).join('')+'</div>'+
+      '<button class="cta" data-act="multiOk" data-q="'+esc(q.id)+'"'+(sel.length?'':' disabled style="opacity:.5"')+'><span>Готово<small>Выбрано: '+sel.length+'</small></span>'+I.arrow+'</button>';
+  } else {
+    h+='<div class="opts">'+q.opts.map(function(o,i){return '<button class="opt" data-act="answer" data-q="'+q.id+'" data-v="'+esc(o.v)+'"><span class="k">'+String.fromCharCode(1040+i)+'</span><span>'+esc(o.l)+(o.s?'<small>'+esc(o.s)+'</small>':'')+'</span></button>'}).join('')+'</div>';
+  }
+  h+='</div><p class="note">Ответ на вопрос: +5 XP. Ответ можно изменить на вкладке «Ответы».</p>'+
+   '<div class="btns"><button class="btn" data-act="edQ" data-id="'+esc(q.id)+'">Изменить этот вопрос</button><button class="btn" data-act="newQ" data-st="'+a.i+'">+ Добавить вопрос</button></div></div>';
+  return h;
+}
+
+/* ---------- sheets ---------- */
+function sheetTask(){
+  var kp=kpById(ui.sheet.kp); if(!kp)return '';
+  var an=analyze(kp), t=an.tasks.filter(function(x){return x.id===ui.sheet.t})[0]; if(!t)return '';
+  var s=stOf(kp,t), stg=an.stages[t.st];
+  var debtsOther=an.debts.filter(function(d){return d.id!==t.id&&d.st<=t.st}).length;
+  var h='<div class="grab"></div><div><div class="label"><span class="mono" style="color:var(--accent)">'+OPS[t.st]+'</span> '+STAGES[t.st]+' · '+esc(kp.num)+'</div><h2 class="disp" style="font-size:19px;margin-top:4px;font-weight:600">'+esc(t.title)+'</h2></div>';
+  if(t.hint)h+='<div class="qhint">'+esc(t.hint)+'</div>';
+  if(s.s==='debt')h+='<div class="debts"><h3>Это долг</h3><span style="font-size:14px">Погасить до <b class="mono">'+fmt(s.due)+'</b> ('+dl(daysLeft(s.due))+'). Пока долг висит, не закрыть '+esc(milestoneFor(kp,t.st))+'.</span></div>';
+  h+='<label class="field"><span>Исполнитель или кому передано</span><input type="text" id="tWho" data-kp="'+kp.id+'" data-t="'+t.id+'" value="'+esc(s.who||'')+'" placeholder="Например: ОГТ, Петров"></label>';
+  h+='<label class="field"><span>Комментарий</span><textarea id="tComment" data-kp="'+kp.id+'" data-t="'+t.id+'" placeholder="Кому передано, номер служебки, что ответили…">'+esc(s.c||'')+'</textarea></label>';
+  if(t.id==='rewrite'||(s.c&&s.c.length>80))h+='<div class="btns"><button class="btn" data-act="copyComment">Скопировать комментарий</button></div>';
+  if(!stg.unlocked)h+='<div class="locked-card">'+I.lock+'Этап ещё закрыт.</div>';
+  else if(s.s==='done')h+='<div class="btns"><button class="btn" data-act="reopen">Вернуть в работу</button></div>';
+  else{
+    var blocked=t.final&&debtsOther>0;
+    h+='<div class="btns"><button class="btn okb" data-act="done"'+(blocked?' disabled':'')+'>'+(s.s==='debt'?'Погасить долг (+15 XP)':'Готово (+10 XP)')+'</button></div>';
+    if(blocked)h+='<p class="note" style="color:var(--debt)">Сначала погасите долги: '+debtsOther+'. Иначе шаг уйдёт без ведомостей и заключений.</p>';
+    if(kp.urgent&&s.s!=='debt'&&!t.final){
+      var def=kp.deadline?iso(Math.max(today()+DAY,parseIso(kp.deadline)-DAY)):iso(today()+2*DAY);
+      h+='<div class="debts"><h3>Отложить в долг</h3><span style="font-size:13px">Шаг закроется условно и откроет следующий этап. Напоминание будет на главном экране.</span>'+
+        '<label class="field"><span>Погасить до</span><input type="date" id="tDue" value="'+def+'"></label><button class="btn debtb" data-act="debt">Отложить в долг</button></div>';
+    }
+    if(!kp.urgent&&!t.final)h+='<p class="note">Отложить шаг можно только в режиме «Срочно».</p>';
+  }
+  if(t.custom)h+='<div class="btns"><button class="btn dang" data-act="customDel">'+(ui.confirm==='customDel'?'Точно удалить задачу?':'Удалить свою задачу')+'</button></div>';
+  else if(t.src)h+='<button class="btn" data-act="edT" data-id="'+esc(t.src)+'">Изменить эту задачу в дереве</button>';
+  return h;
+}
+
+function sheetSettings(){
+  return '<div class="grab"></div><h2 class="disp" style="font-size:19px;font-weight:600">Настройки</h2>'+
+  '<button class="cta ghost" data-act="openTree"><span>Дерево вопросов и задач<small>Добавить вопрос, вариант ответа или задачу</small></span>'+I.arrow+'</button>'+
+  '<label class="field"><span>Цеха (по одному в строке)</span><textarea id="sShops">'+esc(S.settings.shops.join('\n'))+'</textarea></label>'+
+  '<div class="btns"><button class="btn pri" data-act="saveShops">Сохранить цеха</button></div>'+
+  '<div class="label">Резервная копия</div><p class="note">Данные живут только в браузере этого телефона. Скопируйте копию в заметки, чтобы не потерять при очистке браузера.</p>'+
+  '<textarea id="sJson" placeholder="Сюда можно вставить копию для восстановления"></textarea>'+
+  '<div class="btns"><button class="btn" data-act="exportJson">Скопировать копию</button><button class="btn" data-act="importJson">Восстановить из поля</button></div>'+
+  '<div class="label">Примеры</div><div class="btns"><button class="btn dang" data-act="delExamples">Удалить примеры</button>'+
+  (ui.confirm==='wipe'?'<button class="btn dang" data-act="wipe">Точно стереть всё?</button>':'<button class="btn dang" data-act="wipe">Стереть все данные</button>')+'</div>';
+}
+
+function sheetEdit(){
+  var kp=kpById(ui.kpId);
+  return '<div class="grab"></div><h2 class="disp" style="font-size:19px;font-weight:600">Карточка КП</h2>'+
+  '<label class="field"><span>Номер</span><input type="text" id="e-num" value="'+esc(kp.num)+'"></label>'+
+  '<label class="field"><span>Заказчик</span><input type="text" id="e-cust" value="'+esc(kp.customer)+'"></label>'+
+  '<label class="field"><span>Предмет</span><input type="text" id="e-subj" value="'+esc(kp.subject)+'"></label>'+
+  '<label class="field"><span>Формулировка заявки</span><textarea id="e-text">'+esc(kp.text)+'</textarea></label>'+
+  '<label class="field"><span>Срок ответа</span><input type="date" id="e-dl" value="'+esc(kp.deadline||'')+'"></label>'+
+  '<div class="btns"><button class="btn pri" data-act="saveEdit">Сохранить</button>'+
+  (ui.confirm==='del'?'<button class="btn dang" data-act="delKp">Точно удалить?</button>':'<button class="btn dang" data-act="delKp">Удалить КП</button>')+'</div>';
+}
+
+/* ---------- редактор дерева ---------- */
+function stageChips(cur,from){
+  var h='<div class="seg" role="group">';
+  for(var i=from||0;i<N;i++)h+='<button type="button" data-act="edSt" data-v="'+i+'" aria-pressed="'+(cur===i)+'"><span class="mono">'+OPS[i]+'</span> '+STAGES_SHORT[i]+'</button>';
+  return h+'</div>';
+}
+function condEditor(list,label){
+  var d=ui.ed.d, rows=d[list]||[];
+  var qs=S.tree.questions.filter(function(q){return q.id!==d.id});
+  var h='<div class="field"><span>'+label+'</span>';
+  rows.forEach(function(c,i){
+    var q=qById(c[0]);
+    h+='<div class="cond"><div class="cond-h"><select data-ed-sel="'+list+'.'+i+'" aria-label="Вопрос">'+qs.map(function(x){return '<option value="'+esc(x.id)+'"'+(x.id===c[0]?' selected':'')+'>'+OPS[x.st]+' · '+esc(x.text)+'</option>'}).join('')+'</select>'+
+      '<button type="button" class="iconbtn sm" data-act="edCondDel" data-list="'+list+'" data-i="'+i+'" aria-label="Убрать условие">×</button></div>'+
+      '<div class="chips">'+qOpts(q).map(function(o){var on=c[1].indexOf(o.v)>=0;return '<button type="button" class="chip pick" aria-pressed="'+on+'" data-act="edVal" data-list="'+list+'" data-i="'+i+'" data-v="'+esc(o.v)+'">'+esc(o.l)+'</button>'}).join('')+'</div></div>';
+  });
+  h+='<button type="button" class="btn" data-act="edCondAdd" data-list="'+list+'">+ Условие</button></div>';
+  return h;
+}
+function sheetEdQ(){
+  var d=ui.ed.d, h='<div class="grab"></div><h2 class="disp" style="font-size:19px;font-weight:600">'+(ui.ed.isNew?'Новый вопрос':'Вопрос')+'</h2>';
+  h+='<label class="field"><span>Текст вопроса</span><input type="text" data-ed="text" value="'+esc(d.text)+'" placeholder="Например: Нужна ли упаковка по ГОСТ 23170?"></label>';
+  h+='<label class="field"><span>Подсказка</span><input type="text" data-ed="hint" value="'+esc(d.hint||'')+'"></label>';
+  h+='<div class="field"><span>Этап</span>'+stageChips(d.st)+'</div>';
+  h+='<div class="toggle"><div class="t">Задать после задач этапа<small>Вопрос по итогам: например «Службы дали замечания?»</small></div><button type="button" class="sw" role="switch" aria-checked="'+!!d.gate+'" data-act="edGate"></button></div>';
+  if(!d.kind||d.kind==='multi')h+='<div class="toggle"><div class="t">Можно выбрать несколько<small>Например, несколько видов работ сразу</small></div><button type="button" class="sw" role="switch" aria-checked="'+(d.kind==='multi')+'" data-act="edMulti"></button></div>';
+  if(d.kind==='shops')h+='<p class="note">Варианты ответа берутся из списка цехов в настройках.</p>';
+  else{
+    h+='<div class="field"><span>Варианты ответа</span>';
+    (d.opts||[]).forEach(function(o,i){h+='<div class="cond-h"><input type="text" data-ed="opts.'+i+'.l" value="'+esc(o.l)+'" placeholder="Вариант '+(i+1)+'"><button type="button" class="iconbtn sm" data-act="edOptDel" data-i="'+i+'" aria-label="Удалить вариант">×</button></div>'});
+    h+='<button type="button" class="btn" data-act="edOptAdd">+ Вариант</button></div>';
+  }
+  h+=condEditor('when','Показывать, только если (все условия)');
+  h+='<p class="note">Задачи, которые должен открыть ответ, добавьте в разделе «Задачи» с условием на этот вопрос. Сначала сохраните вопрос.</p>';
+  h+=edButtons();
+  return h;
+}
+function sheetEdT(){
+  var d=ui.ed.d, h='<div class="grab"></div><h2 class="disp" style="font-size:19px;font-weight:600">'+(ui.ed.isNew?'Новая задача':'Задача')+'</h2>';
+  h+='<label class="field"><span>Название</span><input type="text" data-ed="title" value="'+esc(d.title)+'" placeholder="Например: Ведомость оснастки"></label>';
+  h+='<label class="field"><span>Подсказка: кому, что приложить</span><input type="text" data-ed="hint" value="'+esc(d.hint||'')+'"></label>';
+  h+='<div class="field"><span>Этап</span>'+stageChips(d.st)+'</div>';
+  if(!d.final)h+='<div class="toggle"><div class="t">Отдельно для каждого цеха<small>Создаётся по задаче на каждый выбранный цех</small></div><button type="button" class="sw" role="switch" aria-checked="'+!!d.perShop+'" data-act="edPerShop"></button></div>';
+  h+=condEditor('when','Появляется, если (все условия)');
+  h+=condEditor('any','…и хотя бы одно из (необязательно)');
+  h+='<p class="note">Без условий задача появляется в каждом КП.</p>';
+  h+=edButtons();
+  return h;
+}
+function edButtons(){
+  var d=ui.ed.d, locked=d.kind==='gost'||d.kind==='shops';
+  return '<div class="btns"><button class="btn pri" data-act="edSave">Сохранить</button><button class="btn" data-act="closeSheet">Отмена</button>'+
+    (!ui.ed.isNew&&!locked?'<button class="btn dang" data-act="edDel">'+(ui.confirm==='edDel'?'Точно удалить?':'Удалить')+'</button>':'')+'</div>';
+}
+function treeItem(kind,x){
+  var cond=condText(x.when), any=condText(x.any);
+  var meta=[];
+  if(kind==='questions'){ if(x.gate)meta.push('после задач этапа'); if(x.kind==='multi')meta.push('несколько ответов');meta.push(x.kind==='shops'?'варианты: цеха':'вариантов: '+(x.opts||[]).length) }
+  else { if(x.perShop)meta.push('по каждому цеху'); if(x.final)meta.push('закрывает КП') }
+  meta.push(cond||any?'если '+[cond,any&&('одно из: '+any)].filter(Boolean).join('; '):'всегда');
+  return '<div class="ed-item"><button class="ed-main" data-act="'+(kind==='questions'?'edQ':'edT')+'" data-id="'+esc(x.id)+'"><b>'+esc(kind==='questions'?x.text:x.title)+'</b><small>'+esc(meta.join(' · '))+'</small></button>'+
+    '<div class="ed-mv"><button class="iconbtn sm" data-act="mv" data-kind="'+kind+'" data-id="'+esc(x.id)+'" data-d="-1" aria-label="Выше">↑</button><button class="iconbtn sm" data-act="mv" data-kind="'+kind+'" data-id="'+esc(x.id)+'" data-d="1" aria-label="Ниже">↓</button></div></div>';
+}
+function refsTo(qid,v){
+  var out=[];
+  [['questions',S.tree.questions],['tasks',S.tree.tasks]].forEach(function(p){
+    p[1].forEach(function(x){
+      var inAll=(x.when||[]).some(function(c){return c[0]===qid&&c[1].indexOf(v)>=0});
+      var inAny=(x.any||[]).some(function(c){return c[0]===qid&&c[1].indexOf(v)>=0});
+      if(inAll||inAny)out.push({kind:p[0],x:x,any:inAny&&!inAll});
+    });
+  });
+  return out;
+}
+function mapChild(r){
+  var isQ=r.kind==='questions', x=r.x;
+  var others=(x.when||[]).length+(x.any||[]).length>1;
+  return '<button class="mchild '+(isQ?'mq':'mt')+'" data-act="'+(isQ?'edQ':'edT')+'" data-id="'+esc(x.id)+'"><span class="mk">'+(isQ?'Вопрос':'Задача')+' · '+OPS[x.st]+'</span><b>'+esc(isQ?x.text:x.title)+'</b>'+
+    (others?'<small>есть и другие условия'+(r.any?', хватит одного':'')+'</small>':'')+'</button>';
+}
+function viewMap(){
+  var h='';
+  for(var i=0;i<N;i++){
+    var qs=S.tree.questions.filter(function(q){return q.st===i});
+    var always=S.tree.tasks.filter(function(t){return t.st===i&&!(t.when||[]).length&&!(t.any||[]).length});
+    h+='<div class="group"><div class="group-h"><span class="mono">'+OPS[i]+'</span>'+STAGES[i]+'</div>';
+    if(always.length)h+='<div class="mnode"><div class="mhead"><span class="mk">Всегда в этом этапе</span></div><div class="mkids">'+always.map(function(t){return mapChild({kind:'tasks',x:t})}).join('')+'</div></div>';
+    qs.forEach(function(q){
+      var own=condText(q.when);
+      h+='<div class="mnode"><button class="mhead" data-act="edQ" data-id="'+esc(q.id)+'"><span class="mk">Вопрос'+(q.gate?' по итогам задач этапа':'')+(q.kind==='multi'||q.kind==='shops'?' · несколько ответов':'')+'</span><b>'+esc(q.text)+'</b>'+(own?'<small>задаётся, если '+esc(own)+'</small>':'')+'</button>';
+      qOpts(q).forEach(function(o){
+        var refs=refsTo(q.id,o.v);
+        h+='<div class="mopt"><div class="mopt-l"><span>'+esc(o.l)+'</span><span class="madd"><button class="chip pick" data-act="newT" data-st="'+q.st+'" data-q="'+esc(q.id)+'" data-v="'+esc(o.v)+'">+ задача</button><button class="chip pick" data-act="newQ" data-st="'+q.st+'" data-q="'+esc(q.id)+'" data-v="'+esc(o.v)+'">+ вопрос</button></span></div>'+
+          (refs.length?'<div class="mkids">'+refs.map(mapChild).join('')+'</div>':'<div class="mnone">ничего не открывает</div>')+'</div>';
+      });
+      h+='</div>';
+    });
+    h+='</div>';
+  }
+  return h;
+}
+function viewTree(){
+  var mode=ui.treeMode||'map';
+  var h='<div class="top"><button class="iconbtn" data-act="home" aria-label="Назад">'+I.back+'</button><h1 class="disp">Дерево вопросов</h1></div><div class="stack">';
+  h+='<div class="seg" role="group"><button data-act="treeMode" data-v="map" aria-pressed="'+(mode==='map')+'">Схема связей</button><button data-act="treeMode" data-v="list" aria-pressed="'+(mode==='list')+'">Списком</button></div>';
+  if(mode==='map'){
+    h+='<p class="note">Под каждым вариантом ответа видно, какие задачи и вопросы он открывает. Нажмите на карточку, чтобы изменить её, или на «+ задача» у ответа, чтобы добавить новую сразу с этим условием.</p>'+viewMap()+'</div>';
+    return h;
+  }
+  h+='<p class="note">Изменения применяются сразу ко всем КП. Вопросы задаются по порядку сверху вниз внутри этапа. Ответ на вопрос открывает задачи, у которых он стоит в условии.</p>';
+  for(var i=0;i<N;i++){
+    var qs=S.tree.questions.filter(function(q){return q.st===i}), ts=S.tree.tasks.filter(function(t){return t.st===i});
+    h+='<div class="group"><div class="group-h"><span class="mono">'+OPS[i]+'</span>'+STAGES[i]+'</div>';
+    h+='<div class="label">Вопросы</div>'+qs.map(function(q){return treeItem('questions',q)}).join('')+'<button class="btn" data-act="newQ" data-st="'+i+'">+ Вопрос</button>';
+    h+='<div class="label" style="margin-top:6px">Задачи</div>'+ts.map(function(t){return treeItem('tasks',t)}).join('')+'<button class="btn" data-act="newT" data-st="'+i+'">+ Задача</button></div>';
+  }
+  h+='<div class="btns"><button class="btn dang" data-act="treeReset">'+(ui.confirm==='treeReset'?'Точно вернуть стандартное дерево?':'Вернуть стандартное дерево')+'</button></div></div>';
+  return h;
+}
+function sheetCustom(kp){
+  var an=analyze(kp), from=an.active?an.active.i:3, d=ui.ed.d;
+  return '<div class="grab"></div><h2 class="disp" style="font-size:19px;font-weight:600">Своя задача</h2>'+
+  '<label class="field"><span>Что сделать</span><input type="text" data-ed="title" value="'+esc(d.title)+'" placeholder="Например: Запросить сертификат на материал"></label>'+
+  '<label class="field"><span>Подсказка</span><input type="text" data-ed="hint" value="'+esc(d.hint||'')+'"></label>'+
+  '<div class="field"><span>Этап</span>'+stageChips(d.st,from)+'</div>'+
+  '<div class="toggle"><div class="t">Добавить в дерево для всех КП<small>Иначе задача будет только в '+esc(kp.num)+'</small></div><button type="button" class="sw" role="switch" aria-checked="'+!!d.toTree+'" data-act="edToTree"></button></div>'+
+  '<div class="btns"><button class="btn pri" data-act="customSave">Добавить</button><button class="btn" data-act="closeSheet">Отмена</button></div>';
+}
+function setPath(o,path,v){var p=path.split('.');for(var i=0;i<p.length-1;i++)o=o[p[i]];o[p[p.length-1]]=v}
+function stripRefs(qid){
+  S.tree.questions.concat(S.tree.tasks).forEach(function(x){
+    ['when','any'].forEach(function(k){ if(x[k])x[k]=x[k].filter(function(c){return c[0]!==qid}) });
+  });
+}
+function edSave(){
+  var d=ui.ed.d, kind=ui.ed.kind;
+  ['when','any'].forEach(function(k){ if(d[k]){d[k]=d[k].filter(function(c){return c[1].length}); if(!d[k].length)delete d[k]} });
+  if(kind==='questions'){
+    d.text=(d.text||'').trim(); if(!d.text){toast('Впишите текст вопроса');return false}
+    if(d.kind!=='shops'){ d.opts=(d.opts||[]).filter(function(o){return o.l&&o.l.trim()}); if(d.opts.length<2){toast('Нужно минимум два варианта ответа');return false} }
+  } else { d.title=(d.title||'').trim(); if(!d.title){toast('Впишите название задачи');return false} }
+  var arr=S.tree[kind];
+  if(ui.ed.isNew)arr.push(d); else arr[arr.findIndex(function(x){return x.id===d.id})]=d;
+  save(); toast('Дерево обновлено'); return true;
+}
+
+/* ---------- render ---------- */
+var app=document.getElementById('app');
+function render(){
+  var h=ui.view==='home'?viewHome():ui.view==='new'?viewNew():ui.view==='q'?viewQ():ui.view==='tree'?viewTree():viewKp();
+  var sh='';
+  if(ui.sheet){
+    var t=ui.sheet.type, inner=t==='task'?sheetTask():t==='settings'?sheetSettings():t==='edQ'?sheetEdQ():t==='edT'?sheetEdT():t==='custom'?sheetCustom(kpById(ui.kpId)):sheetEdit();
+    sh='<div class="scrim" data-act="closeSheet"></div><div class="sheet" role="dialog" aria-modal="true"><div class="sheet-in">'+inner+'</div></div>';
+  }
+  var old=app.querySelector('.sheet'), top=old?old.scrollTop:0, same=old&&ui.sheet&&old.dataset.k===ui.sheet.type;
+  app.innerHTML='<div class="wrap">'+h+'</div>'+sh;
+  var nw=app.querySelector('.sheet'); if(nw){nw.dataset.k=ui.sheet.type; if(same)nw.scrollTop=top}
+  if(ui.pulse!=null)setTimeout(function(){ui.pulse=null},2500);
+}
+
+function copy(text){
+  function fallback(){var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Скопировано')}catch(e){toast('Выделите текст и скопируйте вручную')}ta.remove()}
+  try{navigator.clipboard.writeText(text).then(function(){toast('Скопировано')},fallback)}catch(e){fallback()}
+}
+
+/* ---------- actions ---------- */
+app.addEventListener('click',function(e){
+  var el=e.target.closest('[data-act]'); if(!el)return;
+  var act=el.dataset.act, kp=kpById(ui.kpId), prev;
+  switch(act){
+    case 'home':ui.view='home';ui.sheet=null;break;
+    case 'filter':ui.filter=el.dataset.v;break;
+    case 'newKp':ui.view='new';break;
+    case 'swNew':el.setAttribute('aria-checked',el.getAttribute('aria-checked')==='true'?'false':'true');return;
+    case 'openKp':ui.kpId=el.dataset.id;ui.view='kp';ui.tab='tasks';ui.confirm=null;window.scrollTo(0,0);break;
+    case 'backKp':ui.view='kp';ui.qdraft=null;break;
+    case 'tab':ui.tab=el.dataset.v;ui.confirm=null;break;
+    case 'startQ':ui.view='q';ui.qdraft=null;window.scrollTo(0,0);break;
+    case 'showTasks':ui.tab='tasks';render();var g=document.querySelector('.group:not(.locked) .task:not(.done):not(.debt)');if(g)g.scrollIntoView({behavior:'smooth',block:'center'});return;
+    case 'urgent':kp.urgent=!kp.urgent;save();toast(kp.urgent?'Срочный режим: шаги можно отложить в долг':'Обычный режим');break;
+    case 'answer':
+      prev=analyze(kp);
+      var q=qById(el.dataset.q);
+      kp.answers[q.id]=el.dataset.v;
+      if(q.kind==='gost'){
+        var txt=ui.qdraft!=null?ui.qdraft:(kp.text||''); kp.text=txt; kp.gost=gostCheck(txt);
+        if(el.dataset.v==='rewrite'){kp.ts.rewrite=kp.ts.rewrite||{s:'open'};if(!kp.ts.rewrite.c)kp.ts.rewrite.c=letterFor(kp)}
+      }
+      ui.qdraft=null;addXp(5,'Ответ принят.');
+      var an2=analyze(kp);
+      if(!an2.active||!an2.active.avail.length){ui.view='kp';ui.tab='tasks';var newT=an2.active?an2.active.open.length:0;if(newT)setTimeout(function(){toast('Вопросы этапа закончились. Открыто задач: '+newT)},1700)}
+      afterChange(kp,prev);window.scrollTo(0,0);return;
+    case 'multi':
+      var mv=el.dataset.v, sel=(Array.isArray(ui.qdraft)?ui.qdraft:[]).slice(), p=sel.indexOf(mv);
+      if(p>=0)sel.splice(p,1);else sel.push(mv);ui.qdraft=sel;break;
+    case 'multiOk':
+      if(!Array.isArray(ui.qdraft)||!ui.qdraft.length)return;
+      var mq=qById(el.dataset.q);
+      prev=analyze(kp);kp.answers[mq.id]=mq.kind==='shops'?ui.qdraft.map(Number).sort():ui.qdraft.slice();ui.qdraft=null;addXp(5,'Ответ принят.');
+      var an3=analyze(kp);if(!an3.active||!an3.active.avail.length){ui.view='kp';ui.tab='tasks'}
+      afterChange(kp,prev);return;
+    case 'gostRun':ui.qdraft=document.getElementById('gostText').value;break;
+    case 'reAnswer':
+      if(ui.confirm!==el.dataset.q){ui.confirm=el.dataset.q;break}
+      var qq=qById(el.dataset.q);
+      S.tree.questions.forEach(function(x,j,arr){ if(x.st>qq.st||(x.st===qq.st&&j>=arr.indexOf(qq)))delete kp.answers[x.id] });
+      kp.finished=false;ui.confirm=null;save();ui.view='q';ui.qdraft=null;toast('Ответ сброшен. Ответьте заново.');break;
+    case 'openTask':ui.kpId=el.dataset.kp;if(ui.view==='home'){ui.view='kp';ui.tab='tasks'}ui.sheet={type:'task',kp:el.dataset.kp,t:el.dataset.t};break;
+    case 'closeSheet':ui.sheet=null;ui.ed=null;ui.confirm=null;break;
+    case 'done':
+      kp=kpById(ui.sheet.kp);prev=analyze(kp);
+      var st=kp.ts[ui.sheet.t]=kp.ts[ui.sheet.t]||{s:'open'};var wasDebt=st.s==='debt';
+      st.s='done';st.at=Date.now();delete st.due;ui.sheet=null;
+      addXp(wasDebt?15:10,wasDebt?'Долг погашен.':'Задача закрыта.');afterChange(kp,prev);return;
+    case 'debt':
+      kp=kpById(ui.sheet.kp);prev=analyze(kp);
+      var st2=kp.ts[ui.sheet.t]=kp.ts[ui.sheet.t]||{s:'open'};
+      st2.s='debt';st2.due=document.getElementById('tDue').value||iso(today()+2*DAY);ui.sheet=null;
+      toast('Отложено в долг до '+fmt(st2.due));afterChange(kp,prev);return;
+    case 'reopen':
+      kp=kpById(ui.sheet.kp);var st3=kp.ts[ui.sheet.t];if(st3){st3.s='open'}kp.finished=false;save();break;
+    case 'copyComment':copy(document.getElementById('tComment').value);return;
+    case 'openTree':ui.sheet=null;ui.view='tree';ui.confirm=null;window.scrollTo(0,0);break;
+    case 'newQ':
+      var pq=el.dataset.q?qById(el.dataset.q):null;
+      ui.ed={kind:'questions',isNew:true,d:{id:'q'+uid(),st:+el.dataset.st,text:'',hint:'',opts:[{v:'o'+uid(),l:'Да'},{v:'o'+uid(),l:'Нет'}],when:pq?[[pq.id,[el.dataset.v]]]:[]}};
+      if(pq&&pq.gate)ui.ed.d.gate=true;
+      ui.sheet={type:'edQ'};ui.confirm=null;break;
+    case 'newT':ui.ed={kind:'tasks',isNew:true,d:{id:'t'+uid(),st:+el.dataset.st,title:'',hint:'',when:el.dataset.q?[[el.dataset.q,[el.dataset.v]]]:[],any:[]}};ui.sheet={type:'edT'};ui.confirm=null;break;
+    case 'treeMode':ui.treeMode=el.dataset.v;break;
+    case 'edQ':var q0=qById(el.dataset.id);if(!q0)return;ui.ed={kind:'questions',isNew:false,d:clone(q0)};ui.sheet={type:'edQ'};ui.confirm=null;break;
+    case 'edT':var t0=S.tree.tasks.filter(function(x){return x.id===el.dataset.id})[0];if(!t0)return;ui.ed={kind:'tasks',isNew:false,d:clone(t0)};ui.sheet={type:'edT'};ui.confirm=null;break;
+    case 'edSt':ui.ed.d.st=+el.dataset.v;break;
+    case 'edMulti':if(ui.ed.d.kind==='multi')delete ui.ed.d.kind;else ui.ed.d.kind='multi';break;
+    case 'edGate':ui.ed.d.gate=!ui.ed.d.gate;break;
+    case 'edPerShop':ui.ed.d.perShop=!ui.ed.d.perShop;break;
+    case 'edToTree':ui.ed.d.toTree=!ui.ed.d.toTree;break;
+    case 'edOptAdd':(ui.ed.d.opts=ui.ed.d.opts||[]).push({v:'o'+uid(),l:''});break;
+    case 'edOptDel':ui.ed.d.opts.splice(+el.dataset.i,1);break;
+    case 'edCondAdd':
+      var first=S.tree.questions.filter(function(x){return x.id!==ui.ed.d.id})[0];if(!first)return;
+      (ui.ed.d[el.dataset.list]=ui.ed.d[el.dataset.list]||[]).push([first.id,[]]);break;
+    case 'edCondDel':ui.ed.d[el.dataset.list].splice(+el.dataset.i,1);break;
+    case 'edVal':
+      var cc=ui.ed.d[el.dataset.list][+el.dataset.i], pv=cc[1].indexOf(el.dataset.v);
+      if(pv>=0)cc[1].splice(pv,1);else cc[1].push(el.dataset.v);break;
+    case 'edSave':if(!edSave())return;ui.sheet=null;ui.ed=null;break;
+    case 'edDel':
+      if(ui.confirm!=='edDel'){ui.confirm='edDel';break}
+      var arr=S.tree[ui.ed.kind];arr.splice(arr.findIndex(function(x){return x.id===ui.ed.d.id}),1);
+      if(ui.ed.kind==='questions')stripRefs(ui.ed.d.id);
+      save();ui.sheet=null;ui.ed=null;ui.confirm=null;toast('Удалено из дерева');break;
+    case 'mv':
+      var A=S.tree[el.dataset.kind], i0=A.findIndex(function(x){return x.id===el.dataset.id}), dir=+el.dataset.d, j=i0+dir;
+      while(j>=0&&j<A.length&&A[j].st!==A[i0].st)j+=dir;
+      if(j<0||j>=A.length)return;
+      var tmp=A[i0];A[i0]=A[j];A[j]=tmp;save();break;
+    case 'treeReset':if(ui.confirm!=='treeReset'){ui.confirm='treeReset';break}S.tree=clone(DEF_TREE);save();ui.confirm=null;toast('Стандартное дерево восстановлено');break;
+    case 'newCustom':var an4=analyze(kp);ui.ed={kind:'custom',d:{title:'',hint:'',st:an4.active?an4.active.i:3}};ui.sheet={type:'custom'};break;
+    case 'customSave':
+      var dd=ui.ed.d;dd.title=(dd.title||'').trim();if(!dd.title){toast('Впишите, что сделать');return}
+      prev=analyze(kp);
+      if(dd.toTree)S.tree.tasks.push({id:'t'+uid(),st:dd.st,title:dd.title,hint:dd.hint});
+      else (kp.custom=kp.custom||[]).push({id:'c'+uid(),st:dd.st,title:dd.title,hint:dd.hint});
+      kp.finished=false;ui.sheet=null;ui.ed=null;toast('Задача добавлена');afterChange(kp,prev);return;
+    case 'customDel':
+      if(ui.confirm!=='customDel'){ui.confirm='customDel';break}
+      kp=kpById(ui.sheet.kp);kp.custom=(kp.custom||[]).filter(function(x){return x.id!==ui.sheet.t});save();ui.sheet=null;ui.confirm=null;break;
+    case 'settings':ui.sheet={type:'settings'};ui.confirm=null;break;
+    case 'editKp':ui.sheet={type:'edit'};ui.confirm=null;break;
+    case 'saveShops':
+      S.settings.shops=document.getElementById('sShops').value.split('\n').map(function(s){return s.trim()}).filter(Boolean);save();toast('Цеха сохранены');break;
+    case 'exportJson':copy(JSON.stringify(S));return;
+    case 'importJson':
+      try{var d=JSON.parse(document.getElementById('sJson').value);if(!d||!Array.isArray(d.kps))throw 0;S=d;if(!S.settings)S.settings={shops:[]};if(!S.tree)S.tree=clone(DEF_TREE);save();ui.sheet=null;ui.view='home';toast('Данные восстановлены')}
+      catch(err){toast('Не удалось прочитать копию. Вставьте текст целиком.')}break;
+    case 'delExamples':S.kps=S.kps.filter(function(k){return !k.example});save();toast('Примеры удалены');break;
+    case 'wipe':if(ui.confirm!=='wipe'){ui.confirm='wipe';break}S={v:1,xp:0,kps:[],tree:S.tree,settings:S.settings};save();ui.confirm=null;ui.sheet=null;ui.view='home';toast('Данные стёрты');break;
+    case 'saveEdit':
+      kp.num=document.getElementById('e-num').value.trim()||kp.num;kp.customer=document.getElementById('e-cust').value.trim();
+      kp.subject=document.getElementById('e-subj').value.trim()||kp.subject;kp.text=document.getElementById('e-text').value;kp.deadline=document.getElementById('e-dl').value;
+      save();ui.sheet=null;toast('Сохранено');break;
+    case 'delKp':if(ui.confirm!=='del'){ui.confirm='del';break}S.kps=S.kps.filter(function(k){return k.id!==kp.id});save();ui.sheet=null;ui.confirm=null;ui.view='home';break;
+  }
+  render();
+});
+app.addEventListener('input',function(e){
+  if(e.target.id==='tComment'){var kp=kpById(e.target.dataset.kp);var st=kp.ts[e.target.dataset.t]=kp.ts[e.target.dataset.t]||{s:'open'};st.c=e.target.value;save()}
+  if(e.target.id==='gostText'){ui.qdraft=e.target.value}
+  if(e.target.id==='tWho'){var k2=kpById(e.target.dataset.kp);var s2=k2.ts[e.target.dataset.t]=k2.ts[e.target.dataset.t]||{s:'open'};s2.who=e.target.value;save()}
+  if(e.target.dataset.ed&&ui.ed)setPath(ui.ed.d,e.target.dataset.ed,e.target.value);
+});
+app.addEventListener('change',function(e){
+  var p=e.target.dataset.edSel; if(!p||!ui.ed)return;
+  var parts=p.split('.');ui.ed.d[parts[0]][+parts[1]]=[e.target.value,[]];render();
+});
+app.addEventListener('submit',function(e){
+  e.preventDefault();
+  var g=function(id){return document.getElementById(id).value.trim()};
+  var kp={id:uid(),num:g('f-num'),customer:g('f-cust'),subject:g('f-subj'),text:document.getElementById('f-text').value,received:g('f-rec'),deadline:g('f-dl'),
+    urgent:document.getElementById('f-urg').getAttribute('aria-checked')==='true',created:Date.now(),answers:{},ts:{},finished:false};
+  if(!/кп/i.test(kp.num))kp.num='КП № '+kp.num;
+  S.kps.unshift(kp);save();ui.kpId=kp.id;ui.view='q';ui.qdraft=null;addXp(5,'КП внесено.');render();window.scrollTo(0,0);
+});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&ui.sheet){ui.sheet=null;render()}});
+
+function start(){render()}
+if(window.claude&&window.claude.hot&&window.claude.hot.ready)window.claude.hot.ready(start);else start();
+})();
+</script>
