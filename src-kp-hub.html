@@ -223,6 +223,42 @@ select{width:100%;min-width:0;border:1px solid var(--line);background:var(--surf
 .mchild.mq{background:var(--accent-soft);border-color:transparent}
 .mchild.mq .mk{color:var(--accent)}
 .mnone{font-size:12px;color:var(--muted);padding-left:2px}
+.gtools{display:flex;gap:10px;align-items:center;justify-content:space-between}
+.gwrap{overflow:auto;max-height:68vh;border:1px solid var(--line);border-radius:14px;background:var(--surface);-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.gwrap.gfull{position:fixed;inset:0;z-index:15;max-height:none;border-radius:0;border:0;padding-top:env(safe-area-inset-top,0px)}
+.gclose{display:flex;gap:6px;position:fixed;right:calc(12px + env(safe-area-inset-right,0px));top:calc(12px + env(safe-area-inset-top,0px));z-index:16}
+.gclose .iconbtn{box-shadow:var(--shadow)}
+.gcanvas{position:relative}
+.gcol{position:absolute;top:0;border-right:1.5px solid var(--line)}
+.gcol.alt{background:var(--surface-2)}
+.gcol span{position:absolute;top:8px;left:12px;right:8px;font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gcol b{color:var(--accent)}
+.gsvg{position:absolute;inset:0;overflow:visible}
+.ge{fill:none;stroke:var(--muted);stroke-width:1.3;opacity:.55}
+.ge.off{stroke-dasharray:5 5;opacity:.35}
+.ge.on{stroke:var(--accent);stroke-width:2.4;opacity:1}
+.ge.spine{stroke-width:2}
+.gn{position:absolute;height:46px;display:flex;align-items:center;gap:7px;padding:4px 9px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);text-align:left;font-size:11.5px;line-height:1.2;color:var(--ink)}
+.gn span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;min-width:0}
+.gn i{flex:none;width:16px;height:16px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-style:normal;font-weight:800;font-size:11px;display:grid;place-items:center}
+.gn i.sq{border-radius:4px;background:none;border:1.5px solid var(--muted)}
+.gq{border-radius:23px}
+.gentry{height:46px;background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:700;font-size:12.5px;justify-content:center}
+.gn.gentry.s-wait{background:var(--surface-2);color:var(--muted);border-color:var(--line);border-style:dashed}
+.gn.gentry.s-now{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.gn.gentry.s-done{background:var(--ok);border-color:var(--ok);color:#fff}
+.gn.s-done{background:var(--ok-soft);border-color:var(--ok)}
+.gn.s-done i.sq{background:var(--ok);border-color:var(--ok)}
+.gn.s-now{border-color:var(--accent);border-width:2.5px;box-shadow:0 0 0 4px var(--accent-soft)}
+.gn.s-open{border-color:var(--accent)}
+.gn.s-debt{background:var(--debt-soft);border-color:var(--debt)}
+.gn.s-wait,.gn.s-maybe{border-style:dashed;color:var(--muted)}
+.gn.s-off{border-style:dashed;opacity:.4}
+.glegend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12px;color:var(--muted)}
+.glegend span{display:flex;align-items:center;gap:5px}
+.lg{width:14px;height:10px;border-radius:3px;border:1.5px solid var(--line);display:inline-block}
+.lg.s-done{background:var(--ok-soft);border-color:var(--ok)}.lg.s-now{border-color:var(--accent);border-width:2.5px}.lg.s-open{border-color:var(--accent)}
+.lg.s-debt{background:var(--debt-soft);border-color:var(--debt)}.lg.s-wait{border-style:dashed}.lg.s-off{border-style:dashed;opacity:.4}
 </style>
 
 <div id="app"></div>
@@ -617,7 +653,8 @@ function viewKp(){
   if(an.debts.length){
     h+='<div class="debts"><h3>Долги по этому КП: '+an.debts.length+'</h3>'+an.debts.map(function(t){return debtRow({kp:kp,t:t,due:stOf(kp,t).due})}).join('')+'</div>';
   }
-  h+='<div class="seg" role="tablist">'+[['tasks','Задачи'],['answers','Ответы'],['text','Заявка']].map(function(x){return '<button data-act="tab" data-v="'+x[0]+'" aria-pressed="'+(ui.tab===x[0])+'">'+x[1]+'</button>'}).join('')+'</div>';
+  h+='<div class="seg" role="tablist">'+[['map','Карта'],['tasks','Задачи'],['answers','Ответы'],['text','Заявка']].map(function(x){return '<button data-act="tab" data-v="'+x[0]+'" aria-pressed="'+(ui.tab===x[0])+'">'+x[1]+'</button>'}).join('')+'</div>';
+  if(ui.tab==='map')h+=graphHtml(kp);
   if(ui.tab==='tasks')h+=tasksHtml(kp,an);
   if(ui.tab==='answers')h+=answersHtml(kp);
   if(ui.tab==='text')h+=textHtml(kp);
@@ -861,9 +898,10 @@ function viewMap(){
   return h;
 }
 function viewTree(){
-  var mode=ui.treeMode||'map';
+  var mode=ui.treeMode||'graph';
   var h='<div class="top"><button class="iconbtn" data-act="home" aria-label="Назад">'+I.back+'</button><h1 class="disp">Дерево вопросов</h1></div><div class="stack">';
-  h+='<div class="seg" role="group"><button data-act="treeMode" data-v="map" aria-pressed="'+(mode==='map')+'">Схема связей</button><button data-act="treeMode" data-v="list" aria-pressed="'+(mode==='list')+'">Списком</button></div>';
+  h+='<div class="seg" role="group"><button data-act="treeMode" data-v="graph" aria-pressed="'+(mode==='graph')+'">Граф</button><button data-act="treeMode" data-v="map" aria-pressed="'+(mode==='map')+'">По ответам</button><button data-act="treeMode" data-v="list" aria-pressed="'+(mode==='list')+'">Списком</button></div>';
+  if(mode==='graph'){h+='<p class="note">Нажмите на узел, чтобы изменить вопрос или задачу.</p>'+graphHtml(null)+'</div>';return h}
   if(mode==='map'){
     h+='<p class="note">Под каждым вариантом ответа видно, какие задачи и вопросы он открывает. Нажмите на карточку, чтобы изменить её, или на «+ задача» у ответа, чтобы добавить новую сразу с этим условием.</p>'+viewMap()+'</div>';
     return h;
@@ -905,6 +943,132 @@ function edSave(){
   save(); toast('Дерево обновлено'); return true;
 }
 
+/* ---------- карта-граф: колонки этапов, узлы, связи ---------- */
+var G={colW:200,nodeW:160,nodeH:46,top:96,step:58,head:34};
+function clauses(x){return (x.when||[]).concat(x.any||[])}
+function graphModel(kp){
+  var a=kp?kp.answers:{}, an=kp?analyze(kp):null, built=kp?an.tasks:[];
+  var nodes=[], byId={};
+  function add(n){nodes.push(n);byId[n.key]=n}
+  for(var i=0;i<N;i++)add({key:'E'+i,kind:'entry',st:i,label:i===0?'Заявка':OPS[i]+' '+STAGES_SHORT[i]});
+  S.tree.questions.forEach(function(q){
+    var st='neutral';
+    if(kp){
+      var ok=condOk(a,q), decided=clauses(q).every(function(c){return c[0] in a});
+      st=(q.id in a)?'done':(an.active&&an.active.avail.some(function(x){return x.id===q.id}))?'now':ok?'wait':decided?'off':'maybe';
+    }
+    add({key:'q:'+q.id,kind:'q',id:q.id,st:q.st,label:q.text,state:st,src:q});
+  });
+  S.tree.tasks.forEach(function(t){
+    var st='neutral', inst=[];
+    if(kp){
+      inst=built.filter(function(b){return b.src===t.id});
+      var decided=clauses(t).every(function(c){return c[0] in a});
+      if(!inst.length)st=decided&&clauses(t).length?'off':'maybe';
+      else{
+        var ss=inst.map(function(b){return stOf(kp,b).s});
+        var unlocked=an.stages[t.st].unlocked;
+        st=ss.every(function(s){return s==='done'})?'done':ss.some(function(s){return s==='debt'})&&ss.every(function(s){return s!=='open'})?'debt':unlocked?'open':'wait';
+      }
+    }
+    add({key:'t:'+t.id,kind:'t',id:t.id,st:t.st,label:t.title+(t.perShop&&inst.length>1?' ×'+inst.length:''),state:st,src:t,inst:inst});
+  });
+  if(kp)(kp.custom||[]).forEach(function(c){
+    var s=stOf(kp,c).s;
+    add({key:'c:'+c.id,kind:'t',custom:true,id:c.id,st:c.st,label:c.title,state:s==='done'?'done':s==='debt'?'debt':an.stages[c.st].unlocked?'open':'wait',src:c,inst:[c]});
+  });
+  var edges=[];
+  for(var j=0;j<N-1;j++)edges.push({from:'E'+j,to:'E'+(j+1),on:kp?an.stages[j].done:true,spine:true});
+  nodes.forEach(function(n){
+    if(n.kind==='entry')return;
+    var cl=n.custom?[]:clauses(n.src);
+    if(!cl.length){edges.push({from:'E'+n.st,to:n.key,on:kp?['done','now','open','debt'].indexOf(n.state)>=0:true});return}
+    cl.forEach(function(c){
+      if(!byId['q:'+c[0]])return;
+      var on=kp?match(a,c)&&n.state!=='off'&&n.state!=='maybe':true;
+      var q=qById(c[0]);
+      var lbl=kp&&on?qOpts(q).filter(function(o){return match(a,[c[0],[o.v]])&&c[1].indexOf(o.v)>=0}).map(function(o){return o.l}).join(', '):'';
+      edges.push({from:'q:'+c[0],to:n.key,on:on,label:lbl});
+    });
+  });
+  // раскладка: колонка = этап; вопросы по порядку, задачи по средней высоте родителей
+  var colsH=[];
+  for(var k=0;k<N;k++){
+    var e=byId['E'+k]; e.x=k*G.colW+24; e.y=G.head+12;
+    var qs=nodes.filter(function(n){return n.st===k&&n.kind==='q'});
+    var ts=nodes.filter(function(n){return n.st===k&&n.kind==='t'});
+    var y=G.top;
+    qs.forEach(function(n){n.x=k*G.colW+24;n.y=y;y+=G.step});
+    ts.forEach(function(n){
+      var ps=edges.filter(function(ed){return ed.to===n.key}).map(function(ed){return byId[ed.from]}).filter(function(p){return p&&p.y!=null});
+      n.bary=ps.length?ps.reduce(function(s,p){return s+p.y},0)/ps.length:0;
+    });
+    ts.sort(function(p,q2){return p.bary-q2.bary});
+    if(qs.length)y+=10;
+    ts.forEach(function(n){n.x=k*G.colW+24;n.y=y;y+=G.step});
+    colsH.push(y);
+  }
+  return {nodes:nodes,byId:byId,edges:edges,W:N*G.colW+10,H:Math.max.apply(null,colsH)+20};
+}
+function edgePath(p,c){
+  var x1=p.x+G.nodeW, y1=p.y+G.nodeH/2, y2=c.y+G.nodeH/2;
+  if(p.st===c.st&&p.kind!=='entry'){var bx=x1+18+Math.min(30,Math.abs(y2-y1)/8);return 'M'+x1+' '+y1+' C'+bx+' '+y1+' '+bx+' '+y2+' '+x1+' '+y2}
+  if(p.kind==='entry'&&p.st===c.st){var lx=p.x-8;return 'M'+(p.x+12)+' '+(p.y+G.nodeH)+' C'+lx+' '+(p.y+G.nodeH+20)+' '+lx+' '+y2+' '+c.x+' '+y2}
+  var x2=c.x, dx=Math.max(30,(x2-x1)/2);
+  return 'M'+x1+' '+y1+' C'+(x1+dx)+' '+y1+' '+(x2-dx)+' '+y2+' '+x2+' '+y2;
+}
+function graphHtml(kp){
+  var m=graphModel(kp), h='';
+  var bands='';
+  for(var i=0;i<N;i++)bands+='<div class="gcol'+(i%2?' alt':'')+'" style="left:'+(i*G.colW)+'px;width:'+G.colW+'px;height:'+m.H+'px"><span><b class="mono">'+OPS[i]+'</b> '+STAGES[i]+'</span></div>';
+  var off='', on='', bus={};
+  m.edges.forEach(function(e){
+    var p=m.byId[e.from], c=m.byId[e.to]; if(!p||!c)return;
+    if(p.kind==='entry'&&c.kind!=='entry'&&p.st===c.st){(bus[p.st]=bus[p.st]||[]).push({c:c,on:e.on&&!!kp});return}
+    var d=edgePath(p,c);
+    if(e.on&&kp)on+='<path d="'+d+'" class="ge on'+(e.spine?' spine':'')+'"/>';
+    else off+='<path d="'+d+'" class="ge'+(kp?' off':'')+(e.spine?' spine':'')+'"/>';
+  });
+  // вход этапа: общий ствол слева и отводы к узлам без условий
+  Object.keys(bus).forEach(function(k){
+    var p=m.byId['E'+k], items=bus[k], tx=p.x-10, y0=p.y+G.nodeH/2;
+    var maxY=Math.max.apply(null,items.map(function(b){return b.c.y+G.nodeH/2}));
+    var onY=items.filter(function(b){return b.on}).map(function(b){return b.c.y+G.nodeH/2});
+    var stub='M'+p.x+' '+y0+' H'+tx;
+    off+='<path d="'+stub+' V'+maxY+'" class="ge'+(kp?' off':'')+'"/>';
+    if(onY.length)on+='<path d="'+stub+' V'+Math.max.apply(null,onY)+'" class="ge on"/>';
+    items.forEach(function(b){var y=b.c.y+G.nodeH/2, d='M'+tx+' '+y+' H'+b.c.x; if(b.on)on+='<path d="'+d+'" class="ge on"/>';else off+='<path d="'+d+'" class="ge'+(kp?' off':'')+'"/>'});
+  });
+  var nodesH=m.nodes.map(function(n){
+    var cls='gn '+(n.kind==='entry'?'gentry':n.kind==='q'?'gq':'gt')+' s-'+(n.state||'neutral');
+    if(kp&&n.kind==='entry')cls+=analyze(kp).stages[n.st].done?' s-done':analyze(kp).stages[n.st].unlocked?' s-now':' s-wait';
+    return '<button class="'+cls+'" style="left:'+n.x+'px;top:'+n.y+'px;width:'+(n.kind==='entry'?110:G.nodeW)+'px" data-act="gnode" data-key="'+esc(n.key)+'" title="'+esc(n.label)+'">'+
+      (n.kind==='q'?'<i>?</i>':n.kind==='t'?'<i class="sq"></i>':'')+'<span>'+esc(n.label)+'</span></button>';
+  }).join('');
+  h+='<div class="gtools"><span class="note">'+(kp?'Сплошная линия: пройденный путь. Пунктир: возможные ветки.':'Линии показывают, какой ответ что открывает.')+'</span>'+
+    '<span class="btns" style="flex:none"><button class="iconbtn sm" data-act="gzoom" data-d="-1" aria-label="Мельче">−</button><button class="iconbtn sm" data-act="gzoom" data-d="1" aria-label="Крупнее">+</button>'+
+    '<button class="iconbtn sm" data-act="gfull" aria-label="'+(ui.gfull?'Свернуть':'На весь экран')+'">'+(ui.gfull?'×':'⤢')+'</button></span></div>';
+  var z=ui.gzoom||0.8;
+  h+='<div class="gwrap'+(ui.gfull?' gfull':'')+'" id="gwrap">'+(ui.gfull?'<div class="gclose"><button class="iconbtn" data-act="gzoom" data-d="-1" aria-label="Мельче">−</button><button class="iconbtn" data-act="gzoom" data-d="1" aria-label="Крупнее">+</button><button class="iconbtn" data-act="gfull" aria-label="Свернуть">×</button></div>':'')+
+    '<div class="gcanvas" style="width:'+m.W+'px;height:'+m.H+'px;zoom:'+z+'">'+bands+
+    '<svg class="gsvg" width="'+m.W+'" height="'+m.H+'" viewBox="0 0 '+m.W+' '+m.H+'">'+off+on+'</svg>'+nodesH+'</div></div>';
+  if(kp)h+='<div class="glegend"><span><i class="lg s-done"></i>сделано</span><span><i class="lg s-now"></i>сейчас</span><span><i class="lg s-open"></i>открыто</span><span><i class="lg s-debt"></i>долг</span><span><i class="lg s-wait"></i>впереди</span><span><i class="lg s-off"></i>не нужно</span></div>';
+  return h;
+}
+function graphTap(key){
+  var kp=ui.view==='kp'?kpById(ui.kpId):null, m=graphModel(kp), n=m.byId[key]; if(!n)return;
+  if(n.kind==='entry'){ if(kp){ui.tab='tasks'} return }
+  if(!kp){ ui.ed=n.kind==='q'?{kind:'questions',isNew:false,d:clone(n.src)}:{kind:'tasks',isNew:false,d:clone(n.src)}; ui.sheet={type:n.kind==='q'?'edQ':'edT'}; ui.confirm=null; return }
+  if(n.kind==='q'){
+    if(n.state==='now'){ui.view='q';ui.qdraft=null;ui.gfull=false;return}
+    if(n.state==='done'){ui.tab='answers';ui.gfull=false;return}
+    toast(n.state==='off'?'В этом КП вопрос не нужен':'Вопрос откроется позже'+(condText(n.src.when)?': если '+condText(n.src.when):''));return;
+  }
+  var inst=(n.inst||[]).filter(function(b){return stOf(kp,b).s!=='done'})[0]||(n.inst||[])[0];
+  if(!inst){toast(n.state==='off'?'В этом КП задача не нужна':'Задача появится после ответа: '+(condText(n.src.when)||condText(n.src.any)));return}
+  ui.sheet={type:'task',kp:kp.id,t:inst.id};
+}
+
 /* ---------- render ---------- */
 var app=document.getElementById('app');
 function render(){
@@ -914,9 +1078,11 @@ function render(){
     var t=ui.sheet.type, inner=t==='task'?sheetTask():t==='settings'?sheetSettings():t==='edQ'?sheetEdQ():t==='edT'?sheetEdT():t==='custom'?sheetCustom(kpById(ui.kpId)):sheetEdit();
     sh='<div class="scrim" data-act="closeSheet"></div><div class="sheet" role="dialog" aria-modal="true"><div class="sheet-in">'+inner+'</div></div>';
   }
+  var og=document.getElementById('gwrap'), gs=og?[og.scrollLeft,og.scrollTop]:null;
   var old=app.querySelector('.sheet'), top=old?old.scrollTop:0, same=old&&ui.sheet&&old.dataset.k===ui.sheet.type;
   app.innerHTML='<div class="wrap">'+h+'</div>'+sh;
   var nw=app.querySelector('.sheet'); if(nw){nw.dataset.k=ui.sheet.type; if(same)nw.scrollTop=top}
+  var ng=document.getElementById('gwrap'); if(ng&&gs){ng.scrollLeft=gs[0];ng.scrollTop=gs[1]}
   if(ui.pulse!=null)setTimeout(function(){ui.pulse=null},2500);
 }
 
@@ -934,7 +1100,7 @@ app.addEventListener('click',function(e){
     case 'filter':ui.filter=el.dataset.v;break;
     case 'newKp':ui.view='new';break;
     case 'swNew':el.setAttribute('aria-checked',el.getAttribute('aria-checked')==='true'?'false':'true');return;
-    case 'openKp':ui.kpId=el.dataset.id;ui.view='kp';ui.tab='tasks';ui.confirm=null;window.scrollTo(0,0);break;
+    case 'openKp':ui.kpId=el.dataset.id;ui.view='kp';ui.tab='map';ui.confirm=null;window.scrollTo(0,0);break;
     case 'backKp':ui.view='kp';ui.qdraft=null;break;
     case 'tab':ui.tab=el.dataset.v;ui.confirm=null;break;
     case 'startQ':ui.view='q';ui.qdraft=null;window.scrollTo(0,0);break;
@@ -990,6 +1156,9 @@ app.addEventListener('click',function(e){
       ui.sheet={type:'edQ'};ui.confirm=null;break;
     case 'newT':ui.ed={kind:'tasks',isNew:true,d:{id:'t'+uid(),st:+el.dataset.st,title:'',hint:'',when:el.dataset.q?[[el.dataset.q,[el.dataset.v]]]:[],any:[]}};ui.sheet={type:'edT'};ui.confirm=null;break;
     case 'treeMode':ui.treeMode=el.dataset.v;break;
+    case 'gnode':graphTap(el.dataset.key);break;
+    case 'gzoom':ui.gzoom=Math.max(0.4,Math.min(1.4,Math.round(((ui.gzoom||0.8)+0.2*(+el.dataset.d))*10)/10));break;
+    case 'gfull':ui.gfull=!ui.gfull;break;
     case 'edQ':var q0=qById(el.dataset.id);if(!q0)return;ui.ed={kind:'questions',isNew:false,d:clone(q0)};ui.sheet={type:'edQ'};ui.confirm=null;break;
     case 'edT':var t0=S.tree.tasks.filter(function(x){return x.id===el.dataset.id})[0];if(!t0)return;ui.ed={kind:'tasks',isNew:false,d:clone(t0)};ui.sheet={type:'edT'};ui.confirm=null;break;
     case 'edSt':ui.ed.d.st=+el.dataset.v;break;
