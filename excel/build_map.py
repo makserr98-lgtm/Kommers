@@ -9,7 +9,7 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side, Protecti
 from openpyxl.utils import get_column_letter as CL
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.formatting.rule import FormulaRule, CellIsRule
-from kp_data import STAGES, QUESTIONS, TASKS, DICT, REPL, SHOPS
+from kp_data import STAGES, QUESTIONS, TASKS, SHOPS
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else 'kp-map.xlsx'
 EXAMPLE = len(sys.argv) > 2 and sys.argv[2] == 'example'
@@ -116,15 +116,32 @@ for k in order:
 for k in reversed(order):  # вопросы — как можно правее (ближе к действиям, которые включают)
     if nodes[k].kind == 'q' and succ[k]:
         layer[k] = max(layer[k], min(layer[edges[i][1]] for i in succ[k]) - 1)
+# балансировка: каждый узел — в слой, ближайший к медиане соседей по рисуемым связям
+for _ in range(12):
+    for k in order:
+        lo = max([layer[edges[i][0]] + 1 for i in pred[k]] or [0])
+        hi = min([layer[edges[i][1]] - 1 for i in succ[k]] or [max(layer.values())])
+        nb = sorted([layer[edges[i][0]] + 1 for i in dpred[k]] + [layer[edges[i][1]] - 1 for i in dsucc[k]])
+        if not nb or lo > hi: continue
+        want = nb[(len(nb) - 1) // 2] if len(nb) % 2 else (nb[len(nb) // 2 - 1] + nb[len(nb) // 2]) / 2
+        layer[k] = int(min(hi, max(lo, round(want))))
+mn = min(layer.values())
+for k in layer: layer[k] -= mn
 NL = max(layer.values()) + 1
 
-TITLE_ROWS = 7
+import math
+SLOT = 4
+SZ_NODES = {'a:ОГТ', 'a:ОГК', 'a:ОСТ', 'a:ОПП', 'a:ОВК', 'a:ОВК2', 'a:КартаРазр'}
+for n in nodes.values():
+    lines = math.ceil((len(n.title) + 8) / 27) + 2
+    n.trows = math.ceil(lines * 14 / 6) + 1
+    n.sz = n.key in SZ_NODES
 items = {}
 chains = {}
 def node_h(n):
     nin = len(dpred[n.key]); nout = len(dsucc[n.key])
-    body = TITLE_ROWS + 3 * (len(SHOPS) if n.shops else (len(n.opts) if n.multi else 1))
-    return max(body, 2 * max(nin, nout) + 1)
+    body = n.trows + SLOT * (len(SHOPS) if n.shops else (len(n.opts) if n.multi else 1)) + (SLOT if n.sz else 0)
+    return max(body, 3 * max(nin, nout) + 1)
 for k, n in nodes.items():
     items[k] = dict(layer=layer[k], kind='node', h=node_h(n))
 for i in draw:
@@ -172,7 +189,8 @@ for it in range(24):
 layers = best_layers; renum()
 
 # вертикальные позиции: изотоническая регрессия (PAV) к желаемым центрам
-GAP_N, GAP_D = 3, 1
+GAP_N, GAP_D = 5, 2
+PACK = False
 y = {}
 def gap(a, b):
     return GAP_N if items[a]['kind'] == 'node' or items[b]['kind'] == 'node' else GAP_D
@@ -215,7 +233,7 @@ def assign_ports(k, lst, getter, store):
     if it['kind'] == 'dummy':
         for li in lst: store[(k, li)] = y[k]
         return
-    cands = list(range(y[k] + 1, y[k] + it['h'] - 1, 2)) or [y[k]]
+    cands = list(range(y[k] + 1, y[k] + it['h'] - 1, 3)) or [y[k]]
     lst = sorted(lst, key=getter)
     n = len(lst); prev = -1
     for j, li in enumerate(lst):
@@ -245,7 +263,7 @@ for k in items:
 # ------------------------------------------------------------------ колонки
 HEAD_ROWS = 9            # строки шапки над картой
 R0 = HEAD_ROWS + 2       # первая строка карты
-W_LABEL, W_INPUT, W_TRACK, W_MARG = 15, 11, 0.7, 1.0
+W_LABEL, W_INPUT, W_TRACK, W_MARG = 22, 14, 0.7, 1.4
 col = 2
 layer_col = {}
 chan = {}
@@ -277,9 +295,30 @@ for L_ in range(NL):
                 cand = order_t[:]; cand[t], cand[t + 1] = cand[t + 1], cand[t]
                 cc = cost(cand)
                 if cc < best: best, order_t, improved = cc, cand, True
+        # упаковка: несколько связей на одной дорожке, если их вертикали не пересекаются
+        tl = []  # список дорожек: [ [группы] ]
+        where = {}
+        for g in order_t:
+            lo_g, hi_g = span(g)
+            lb, ub = 0, None
+            for bgrp, tobj in where.items():
+                pos_b = next(i_ for i_, tt in enumerate(tl) if tt is tobj)
+                if y1(bgrp) in y2s(g): lb = max(lb, pos_b + 1)
+                if y1(g) in y2s(bgrp): ub = pos_b if ub is None else min(ub, pos_b)
+            placed = False
+            hi_lim = len(tl) - 1 if ub is None else ub - 1
+            for i_ in range(lb, hi_lim + 1) if PACK else []:
+                if all(hi_g + 2 < span(o)[0] or span(o)[1] + 2 < lo_g for o in tl[i_]):
+                    tl[i_].append(g); where[g] = tl[i_]; placed = True; break
+            if not placed:
+                ins = len(tl) if ub is None else min(max(lb, 0), ub)
+                if ub is None: ins = max(ins, lb)
+                tl.insert(ins, [g]); where[g] = tl[ins]
         first = col; col += 1
         tracks = {}
-        for g in order_t: tracks[g] = col; col += 1
+        for tt in tl:
+            for g in tt: tracks[g] = col
+            col += 2   # между дорожками пустой столбец
         last = col; col += 1
         chan[L_] = (first, tracks, last, units)
 NCOL = col
@@ -288,11 +327,8 @@ NCOL = col
 wb = Workbook()
 mp = wb.active; mp.title = 'Карта'
 jr = wb.create_sheet('Журнал')
-fm = wb.create_sheet('Формулировка')
 calc = wb.create_sheet('Расчёт')
 lists = wb.create_sheet('Списки')
-dic = wb.create_sheet('Словарь')
-zm = wb.create_sheet('Замены')
 helpws = wb.create_sheet('Как пользоваться')
 
 def mref(r, c, sheet='Карта'): return f"'{sheet}'!${CL(c)}${r}"
@@ -302,11 +338,12 @@ node_cells = {}   # key -> dict(title=(r,c), input=(r,c) | slots=[(r,c,code,labe
 for k, n in nodes.items():
     L = layer[k]; c0 = layer_col[L]; r0 = R0 + y[k]; h = items[k]['h']
     d = dict(top=r0, bottom=r0 + h - 1, c0=c0, c1=c0 + 1, title=(r0, c0))
-    rr = r0 + TITLE_ROWS
+    rr = r0 + n.trows
+    if n.sz: d['sz'] = (r0 + h - SLOT, c0)
     if n.kind == 'q' and n.multi:
-        d['slots'] = [(rr + 3 * i, c0, o[0], o[1]) for i, o in enumerate(n.opts)]
+        d['slots'] = [(rr + SLOT * i, c0, o[0], o[1]) for i, o in enumerate(n.opts)]
     elif n.shops:
-        d['slots'] = [(rr + 3 * i, c0, c, l) for i, (c, l) in enumerate(SHOPS)]
+        d['slots'] = [(rr + SLOT * i, c0, c, l) for i, (c, l) in enumerate(SHOPS)]
     else:
         d['input'] = (rr, c0)
     node_cells[k] = d
@@ -451,7 +488,11 @@ for k in order:
         calc[f'G{r}'] = (f'=IF({stc}="Сделано","✓",IF({stc}="Не требуется","—",IF({stc}="Хвост","⚑",IF({LC(k, "app")}="нет","×",'
                          f'IF({LC(k, "app")}="?","?",IF({LC(k, "unmet")}>0,"⏳","▶"))))))')
         due = f"'Журнал'!$H${jr_r}"
-        calc[f'H{r}'] = (f'=IF(G{r}="✓","сделано"&IF(E{r}>0," (до него не закрыто: "&E{r}&")",""),IF(G{r}="—","не требуется",'
+        szt = '""'
+        if n.sz:
+            szc = mref(node_cells[k]['sz'][0], node_cells[k]['sz'][1] + 1)
+            szt = f'IF({szc}="",", впишите № СЗ",", СЗ № "&{szc})'
+        calc[f'H{r}'] = (f'=IF(G{r}="✓","сделано"&{szt}&IF(E{r}>0," (до него не закрыто: "&E{r}&")",""),IF(G{r}="—","не требуется",'
                          f'IF(G{r}="⚑","хвост"&IF(ISNUMBER({due})," до "&DAY({due})&"."&RIGHT("0"&MONTH({due}),2),""),'
                          f'IF(G{r}="×","не нужно",IF(G{r}="?","зависит: "&{und},IF(G{r}="⏳","ждёт: "&F{r},"можно делать ▼"))))))')
     calc[f'I{r}'] = f'=G{r}&" {STAGE[n.stage][0]} · {n.title}"&CHAR(10)&H{r}'
@@ -494,7 +535,7 @@ for L in range(NL):
     if L in chan:
         first, tracks, last, segs = chan[L]
         mp.column_dimensions[CL(first)].width = W_MARG; mp.column_dimensions[CL(last)].width = W_MARG
-        for tc in tracks.values(): mp.column_dimensions[CL(tc)].width = W_TRACK
+        for cc in range(first + 1, last): mp.column_dimensions[CL(cc)].width = W_TRACK
 MAXR = R0 + max(y[k] + items[k]['h'] for k in items) + 2
 for r in range(R0, MAXR + 1): mp.row_dimensions[r].height = 6
 
@@ -537,8 +578,8 @@ input_style = dict(font=F(size=8, bold=True), fill=fill('FFFFFF'))
 ex = {}
 if EXAMPLE:
     ex = {'q:ГОЗ': 'Да, ГОЗ', 'q:Работы': ['ремонт', 'кабель', 'щиты'], 'q:Док': 'Частично', 'q:Демонтаж': 'Да, демонтаж и доставка',
-          'q:Вес': 'Да', 'q:Условия': ['годкабеля'], 'q:Формулировка': 'Предложить заказчику переформулировку',
-          'q:Закупка': 'Да, сразу понятно', 'a:Рег': 'Сделано', 'a:ЗапросДок': 'Сделано', 'a:ПисьмоФорм': 'Сделано',
+          'q:Вес': 'Да', 'q:Условия': ['годкабеля'],
+          'q:Закупка': 'Да, сразу понятно', 'a:Рег': 'Сделано', 'a:ЗапросДок': 'Сделано',
           'a:Груз15': 'Хвост', 'a:ГодКабеля': 'Сделано', 'a:ОГТ': 'Сделано'}
 for k, n in nodes.items():
     d = node_cells[k]; r0, r1, c0, c1 = d['top'], d['bottom'], d['c0'], d['c1']
@@ -549,8 +590,19 @@ for k, n in nodes.items():
                                  top=med if r == r0 else None, bottom=med if r == r1 else None)
     tr, tc = d['title']
     t = mp.cell(row=tr, column=tc, value=f"='Расчёт'!$I${node_row[k]}")
-    t.font = F(size=8, bold=True); t.alignment = Alignment(wrap_text=True, vertical='top')
-    mp.merge_cells(start_row=tr, start_column=tc, end_row=tr + TITLE_ROWS - 1, end_column=tc + 1)
+    t.font = F(size=10, bold=True); t.alignment = Alignment(wrap_text=True, vertical='top')
+    mp.merge_cells(start_row=tr, start_column=tc, end_row=tr + n.trows - 1, end_column=tc + 1)
+    if n.sz:
+        r, c = d['sz']
+        a = mp.cell(row=r, column=c, value='№ служебной записки:')
+        mp.merge_cells(start_row=r, start_column=c, end_row=r + SLOT - 1, end_column=c)
+        a.font = F(size=9, color='1F3A5F'); a.alignment = Alignment(horizontal='right', vertical='center')
+        b = mp.cell(row=r, column=c + 1)
+        mp.merge_cells(start_row=r, start_column=c + 1, end_row=r + SLOT - 1, end_column=c + 1)
+        b.font = F(size=10, bold=True, color='1F3A5F'); b.fill = fill('FFF6D5'); b.protection = UNLOCK; b.number_format = '@'
+        b.alignment = Alignment(horizontal='center', vertical='center', shrink_to_fit=True)
+        b.border = Border(left=thin, right=med, top=thin, bottom=med)
+        if EXAMPLE and k == 'a:ОГТ': b.value = '112-45'
     title_cells.append(f'{CL(tc)}{tr}')
     if n.hint:
         from openpyxl.comments import Comment
@@ -558,9 +610,9 @@ for k, n in nodes.items():
     if 'input' in d:
         r, c = d['input']
         lab = mp.cell(row=r, column=c)
-        mp.merge_cells(start_row=r, start_column=c, end_row=r + 2, end_column=c + 1)
+        mp.merge_cells(start_row=r, start_column=c, end_row=r + SLOT - 1, end_column=c + 1)
         lab.alignment = Alignment(horizontal='center', vertical='center', shrink_to_fit=True)
-        lab.font = F(size=8, bold=True, color='1F3A5F'); lab.fill = fill('FFF6D5'); lab.protection = UNLOCK
+        lab.font = F(size=10, bold=True, color='1F3A5F'); lab.fill = fill('FFF6D5'); lab.protection = UNLOCK
         lab.border = Border(left=med, right=med, top=thin, bottom=med)
         if n.kind == 'q':
             dv = DataValidation(type='list', formula1=list_ref[k], allow_blank=True, promptTitle='Ответ', prompt=n.title[:250], showInputMessage=True)
@@ -571,11 +623,11 @@ for k, n in nodes.items():
     else:
         for (r, c, code, label) in d['slots']:
             a = mp.cell(row=r, column=c, value=label)
-            mp.merge_cells(start_row=r, start_column=c, end_row=r + 2, end_column=c)
-            a.font = F(size=7); a.alignment = Alignment(wrap_text=True, vertical='center')
+            mp.merge_cells(start_row=r, start_column=c, end_row=r + SLOT - 1, end_column=c)
+            a.font = F(size=9); a.alignment = Alignment(wrap_text=True, vertical='center', shrink_to_fit=False)
             b = mp.cell(row=r, column=c + 1)
-            mp.merge_cells(start_row=r, start_column=c + 1, end_row=r + 2, end_column=c + 1)
-            b.font = F(size=8, bold=True, color='1F3A5F'); b.fill = fill('FFF6D5'); b.protection = UNLOCK
+            mp.merge_cells(start_row=r, start_column=c + 1, end_row=r + SLOT - 1, end_column=c + 1)
+            b.font = F(size=10, bold=True, color='1F3A5F'); b.fill = fill('FFF6D5'); b.protection = UNLOCK
             b.alignment = Alignment(horizontal='center', vertical='center', shrink_to_fit=True)
             b.border = Border(left=thin, right=med, top=thin, bottom=thin)
             if n.shops:
@@ -658,11 +710,11 @@ mp.protection.selectLockedCells = False; mp.protection.selectUnlockedCells = Fal
 # ------------------------------------------------------------------ Журнал
 jr['A1'] = 'Журнал действий'; jr['A1'].font = F(size=14, bold=True, color='1F3A5F')
 jr['A2'] = 'Статус ставится на карте. Здесь — кто, когда, срок хвоста и комментарии.'; jr['A2'].font = F(size=8, italic=True, color='5B6573')
-hdr = ['Этап', 'Действие', 'Состояние', 'Статус (с карты)', 'Кто / от кого', 'Дата', 'Срок хвоста', 'Нужно к', 'Комментарий / причина']
+hdr = ['Этап', 'Действие', 'Состояние', 'Статус (с карты)', 'Кто / от кого', 'Дата', 'Срок хвоста', 'Нужно к', 'Комментарий / причина', '№ служебной записки (с карты)']
 for j, h in enumerate(hdr):
     c = jr.cell(row=J0 - 1, column=1 + j, value=h); c.font = F(size=9, bold=True, color='FFFFFF'); c.fill = fill('1F3A5F')
     c.alignment = Alignment(horizontal='center', wrap_text=True)
-for col_, w in zip('ABCDEFGHI', [7, 46, 34, 14, 18, 11, 11, 18, 44]): jr.column_dimensions[col_].width = w
+for col_, w in zip('ABCDEFGHIJ', [7, 46, 34, 14, 18, 11, 11, 18, 44, 18]): jr.column_dimensions[col_].width = w
 for (k, c), r in sorted(jrow.items(), key=lambda x: x[1]):
     n = nodes[k]
     jr[f'A{r}'] = STAGE[n.stage][0]
@@ -673,10 +725,12 @@ for (k, c), r in sorted(jrow.items(), key=lambda x: x[1]):
         jr[f'D{r}'] = f'={mref(sl[0], sl[1] + 1)}&""'
     else:
         jr[f'D{r}'] = f'={mref(*node_cells[k]["input"])}&""'
+    if 'sz' in node_cells[k]:
+        jr[f'J{r}'] = f'={mref(node_cells[k]["sz"][0], node_cells[k]["sz"][1] + 1)}&""'
     for col_ in 'EFGHI':
         cell = jr[f'{col_}{r}']; cell.fill = fill('FFF6D5'); cell.protection = UNLOCK
     jr[f'F{r}'].number_format = jr[f'G{r}'].number_format = 'DD.MM.YYYY'
-    for col_ in 'ABCDEFGHI':
+    for col_ in 'ABCDEFGHIJ':
         jr[f'{col_}{r}'].font = F(size=9); jr[f'{col_}{r}'].alignment = Alignment(wrap_text=True, vertical='top')
     if EXAMPLE and k == 'a:Груз15':
         jr[f'G{r}'] = datetime.date(2026, 11, 5); jr[f'H{r}'] = 'до демонтажа'
@@ -689,80 +743,6 @@ jr.conditional_formatting.add(f'A{J0}:I{JL}', FormulaRule(formula=[f'AND(LEFT($C
 jr.freeze_panes = f'C{J0}'
 jr.protection.sheet = True; jr.protection.formatColumns = False; jr.protection.formatRows = False
 
-# ------------------------------------------------------------------ Формулировка
-fm['A1'] = 'Проверка формулировки заявки'; fm['A1'].font = F(size=14, bold=True, color='1F3A5F')
-fm['A2'] = 'Вставьте текст заявки в жёлтую ячейку. Поиск идёт по корням слов из листа «Словарь». Это подсказка, а не нормоконтроль.'
-fm['A2'].font = F(size=8, italic=True, color='5B6573')
-for col_, w in zip('ABCDE', [22, 40, 12, 46, 22]): fm.column_dimensions[col_].width = w
-fm['A4'] = 'Текст заявки:'; fm['A4'].font = F(size=9, bold=True)
-TXT = "'Формулировка'!$B$4"
-fm['B4'] = ('Просим отремонтировать движок насоса НЦВ и подкинуть кабель к щитку, кабель примерно 40 м, наконечники любые. Кабель не ранее 2020 г. Срочно.' if EXAMPLE else None)
-fm['B4'].fill = fill('FFF6D5'); fm['B4'].alignment = Alignment(wrap_text=True, vertical='top'); fm['B4'].protection = UNLOCK; fm['B4'].font = F(size=9)
-fm.merge_cells('B4:E7')
-for r in range(4, 8): fm.row_dimensions[r].height = 22
-# словарь
-NDICT = 60
-dic['A1'] = 'Термин'
-for j, h in enumerate(['Термин', 'Корень 1', 'Корень 2', 'Корень 3', 'Корень 4', 'Почему плохо', 'Как правильно', 'НД', 'Важность', 'найдено', 'в письмо', '№', 'строка', 'накопл.']):
-    c = dic.cell(row=1, column=1 + j, value=h); c.font = F(size=9, bold=True, color='FFFFFF'); c.fill = fill('1F3A5F')
-for col_, w in zip('ABCDEFGHI', [20, 13, 13, 13, 13, 40, 44, 20, 11]): dic.column_dimensions[col_].width = w
-SPEC = [('нет ссылок на НД', f'IF(AND(ISERROR(FIND("ГОСТ",{TXT})),ISERROR(FIND("ОСТ",{TXT})),ISERROR(FIND("ТУ ",{TXT})),ISERROR(FIND("СТО",{TXT})),ISERROR(FIND("ЕСКД",{TXT}))),1,0)',
-         'В заявке нет ни одного ГОСТ, ОСТ или ТУ.', 'указать нормативные документы на изделие и материалы', '', 'замечание'),
-        ('нет количества', f'IF(AND(ISERROR(SEARCH(" шт",{TXT})),ISERROR(SEARCH("компл",{TXT})),ISERROR(SEARCH(" кг",{TXT})),ISERROR(SEARCH(" м ",{TXT})),ISERROR(SEARCH(" м,",{TXT})),ISERROR(SEARCH(" м.",{TXT})),ISERROR(SEARCH("изд",{TXT})),ISERROR(SEARCH("партии",{TXT}))),1,0)',
-         'Не указано количество.', 'количество в штуках или комплектах', '', 'замечание'),
-        ('кабель без марки', f'IF(AND(ISNUMBER(SEARCH("кабел",{TXT})),ISERROR(FIND("×",{TXT})),ISERROR(SEARCH("мм",{TXT}))),1,0)',
-         'Не указана марка и сечение кабеля.', 'марка, число жил и сечение, напр. КНРк 3×2,5', '', 'совет')]
-DR1, DR2 = 2, 1 + NDICT + len(SPEC)
-for i in range(NDICT + len(SPEC)):
-    r = 2 + i
-    if i < NDICT:
-        if i < len(DICT):
-            d_ = DICT[i]; roots = (d_[1] + ['', '', '', ''])[:4]
-            for j, v in enumerate([d_[0]] + roots + [d_[2], d_[3], d_[4], d_[5]]):
-                dic.cell(row=r, column=1 + j, value=v if v else None)
-        ors = ','.join(f'AND({c}{r}&""<>"",ISNUMBER(SEARCH({c}{r}&"",{TXT})))' for c in 'BCDE')
-        dic[f'J{r}'] = f'=IF(OR({TXT}="",A{r}=""),0,IF(OR({ors}),1,0))'
-    else:
-        sp = SPEC[i - NDICT]
-        for j, v in zip([0, 5, 6, 7, 8], [sp[0], sp[2], sp[3], sp[4], sp[5]]): dic.cell(row=r, column=1 + j, value=v if v else None)
-        dic[f'J{r}'] = f'=IF({TXT}="",0,{sp[1]})'
-    dic[f'K{r}'] = f'=IF(AND(J{r}=1,I{r}="замечание"),1,0)'
-    dic[f'L{r}'] = f'=K{r}' if i == 0 else f'=L{r-1}+K{r}'
-    dic[f'M{r}'] = f'=IF(K{r}=1,L{r}&") «"&A{r}&"»: "&F{r}&" Предлагаем: "&G{r}&IF(H{r}&""<>""," ("&H{r}&").","."),"")'
-    dic[f'N{r}'] = (f'=IF(M{r}="","",CHAR(10)&M{r})' if i == 0 else f'=N{r-1}&IF(M{r}="","",CHAR(10)&M{r})')
-dvi = DataValidation(type='list', formula1='"замечание,совет"', allow_blank=True); dic.add_data_validation(dvi); dvi.add(f'I2:I{NDICT+1}')
-# замены
-zm['A1'] = 'Найти (точно, с учётом регистра)'; zm['B1'] = 'Заменить на'; zm['C1'] = 'результат'
-for c in ('A1', 'B1', 'C1'): zm[c].font = F(size=9, bold=True, color='FFFFFF'); zm[c].fill = fill('1F3A5F')
-zm.column_dimensions['A'].width = 30; zm.column_dimensions['B'].width = 60; zm.column_dimensions['C'].hidden = True
-NREPL = 80
-for i in range(NREPL):
-    r = 2 + i
-    if i < len(REPL): zm[f'A{r}'], zm[f'B{r}'] = REPL[i]
-    prev = TXT if i == 0 else f'C{r-1}'
-    zm[f'C{r}'] = f'=IF(A{r}&""="",{prev},SUBSTITUTE({prev},A{r},B{r}&""))'
-REW = f"'Замены'!$C${1 + NREPL}"
-# вывод
-for j, h in enumerate(['Найдено', 'Почему', 'Важность', 'Как правильно', 'НД']):
-    c = fm.cell(row=9, column=1 + j, value=h); c.font = F(size=9, bold=True, color='FFFFFF'); c.fill = fill('1F3A5F')
-FOUND = f"'Словарь'!$J${DR1}:$J${DR2}"
-for k_ in range(1, 21):
-    r = 9 + k_
-    ix = f"_xlfn.AGGREGATE(15,6,(ROW({FOUND})-{DR1-1})/({FOUND}=1),{k_})"
-    for j, colsrc in enumerate('AFIGH'):
-        c = fm.cell(row=r, column=1 + j, value=f"=IFERROR(INDEX('Словарь'!${colsrc}${DR1}:${colsrc}${DR2},{ix})&\"\",\"\")")
-        c.font = F(size=9, bold=(j == 0)); c.alignment = Alignment(wrap_text=True, vertical='top')
-fm.conditional_formatting.add('A10:E29', FormulaRule(formula=['$C10="замечание"'], fill=fill('FFE2BF')))
-fm.conditional_formatting.add('A10:E29', FormulaRule(formula=['$C10="совет"'], fill=fill('FFF5BF')))
-fm['A31'] = 'Письмо заказчику:'; fm['A31'].font = F(size=9, bold=True)
-fm['B31'] = (f"=IF({TXT}=\"\",\"\",IF('Словарь'!$L${DR2}=0,\"Замечаний к формулировке нет.\",\"Уважаемые коллеги!\"&CHAR(10)&\"Для подготовки ответа на \"&IF({FLD['Номер КП']}=\"\",\"заявку\",{FLD['Номер КП']})&\" просим уточнить формулировку заявки:\"&'Словарь'!$N${DR2}&CHAR(10)&CHAR(10)&\"Предлагаемая редакция:\"&CHAR(10)&{REW}))")
-fm['B31'].alignment = Alignment(wrap_text=True, vertical='top'); fm['B31'].font = F(size=9); fm['B31'].fill = fill('F6F8FB')
-fm.merge_cells('B31:E31'); fm.row_dimensions[31].height = 190
-fm['A33'] = 'Предлагаемая редакция:'; fm['A33'].font = F(size=9, bold=True)
-fm['B33'] = f'={REW}'; fm['B33'].alignment = Alignment(wrap_text=True, vertical='top'); fm['B33'].font = F(size=9); fm['B33'].fill = fill('F6F8FB')
-fm.merge_cells('B33:E33'); fm.row_dimensions[33].height = 60
-fm.protection.sheet = True; fm.protection.formatColumns = False; fm.protection.formatRows = False
-
 # ------------------------------------------------------------------ Как пользоваться
 helpws.column_dimensions['A'].width = 120
 HELP = [
@@ -772,7 +752,6 @@ HELP = [
  'Цвет облака: синий — можно делать или пора ответить; зелёный — сделано; оранжевый — хвост; жёлтый — зависит от ещё не данного ответа; белый — ждёт предыдущее; бледный — не нужно.',
  'Подсказка к облаку — в примечании (наведите мышь на облако).',
  'Лист «Журнал»: кто, дата, срок хвоста, к чему нужно, комментарий. Просроченный хвост краснеет.',
- 'Лист «Формулировка»: вставьте текст заявки — увидите замечания по словарю, письмо заказчику и предлагаемую редакцию.',
  'Листы защищены без пароля (Рецензирование → Снять защиту листа), чтобы случайно не стереть формулы.',
  'Ограничения без макросов: связи нарисованы закрашенными ячейками (в местах пересечения видна только вертикальная линия); карта рисуется генератором, поэтому новые вопросы и действия добавляю я, пересобрав шаблон; облака не скрываются, а бледнеют.',
 ]
@@ -781,7 +760,7 @@ for i, t in enumerate(HELP):
     c = helpws.cell(row=3 + i, column=1, value=t); c.font = F(size=10); c.alignment = Alignment(wrap_text=True, vertical='top')
 
 # все ячейки объединённых полей ввода тоже разблокируем (иначе защищённый лист не даст выбрать)
-for ws_ in (mp, fm):
+for ws_ in (mp,):
     for mr in ws_.merged_cells.ranges:
         tl = ws_.cell(row=mr.min_row, column=mr.min_col)
         if tl.protection.locked is False:
